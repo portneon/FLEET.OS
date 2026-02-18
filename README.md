@@ -93,31 +93,29 @@ Each user role has restricted access based on role-based authorization.
 
 ## 🗂️ Project Structure
 
+```
 FleetOS/
-│
 ├── backend/
-│ ├── controllers/
-│ ├── routes/
-│ ├── models/
-│ ├── services/
-│ └── server.ts
+│   ├── controllers/
+│   ├── routes/
+│   ├── models/
+│   ├── services/
+│   └── server.ts
 │
 ├── frontend/
-│ ├── app/
-│ ├── components/
-│ ├── pages/
-│ └── styles/
+│   ├── app/
+│   ├── components/
+│   ├── pages/
+│   └── styles/
 │
-├── docs/
-│ ├── idea.md
-│ ├── useCaseDiagram.md
-│ ├── sequenceDiagram.md
-│ ├── classDiagram.md
-│ └── ErDiagram.md
-│
+├── idea.md
+├── UseCase.md
+├── SequencialDiagram.md
+├── ER_diagram.md
 └── README.md
+```
 
-
+**Note:** Documentation files are currently at the root level. Consider moving them to the `docs/` folder for better organization.
 
 ---
 
@@ -159,6 +157,3 @@ This project demonstrates:
 ## 📌 Conclusion
 
 FleetOS is a comprehensive fleet operations management system that centralizes transportation monitoring and management into a single scalable web platform. The project integrates modern web technologies and structured system design principles to deliver an organized and efficient fleet management solution.
-
-
-
