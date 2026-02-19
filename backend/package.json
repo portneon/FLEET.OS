@@ -1,0 +1,36 @@
+{
+  "name": "fleetos",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "The smartest way to manage you fleets",
+  "main": "index.ts",
+  "scripts": {
+    "start": "node dist/index.ts",
+    "build": "tsc",
+    "dev": "node --loader ts-node/esm index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/portneon/FLEET.OS.git"
+  },
+  "author": "portneon",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/portneon/FLEET.OS/issues"
+  },
+  "homepage": "https://github.com/portneon/FLEET.OS#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "gitignore": "^0.7.0",
+    "morgan": "^1.10.1",
+    "nodemon": "^3.1.11"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.3.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
