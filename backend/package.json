@@ -12,11 +12,15 @@
   },
   "dependencies": {
     "@prisma/client": "^5.x",
+    "@types/jsonwebtoken": "^9.0.10",
     "bcrypt": "^6.0.0",
-    "express": "^4.x"
+    "cors": "^2.8.6",
+    "express": "^4.x",
+    "jsonwebtoken": "^9.0.3"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
     "@types/express": "^4.x",
     "@types/node": "^20.x",
     "nodemon": "^3.x",

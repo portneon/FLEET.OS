@@ -1,5 +1,6 @@
 import express from 'express';
-import { Routes } from './interfaces/routes.interface';
+import cors from 'cors';
+import { Routes } from './shared/interfaces/routes.interface';
 
 export class App {
     public app: express.Application;
@@ -20,6 +21,25 @@ export class App {
     }
 
     private initializeMiddlewares() {
+        const allowedOrigins = [
+            process.env.FRONTEND_URL || 'http://localhost:3000',
+            'http://localhost:3001',
+            'http://localhost:3002',
+        ];
+
+        this.app.use(cors({
+            origin: (origin, callback) => {
+                // Allow requests with no origin (server-to-server, curl, etc.)
+                if (!origin || allowedOrigins.includes(origin)) {
+                    callback(null, true);
+                } else {
+                    callback(null, true); // permissive in dev — restrict in prod
+                }
+            },
+            credentials: true,
+            allowedHeaders: ['Content-Type', 'Authorization', 'x-organization-id', 'x-admin-email'],
+            methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+        }));
         this.app.use(express.json());
     }
 
