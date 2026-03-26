@@ -1,21 +1,21 @@
 // src/modules/auth/auth.routes.ts
 
 import { Router } from 'express';
-import { UserRepository } from './repositories/UserRepository';
-import { AuthService } from './services/AuthService';
 import { AuthController } from './controllers/AuthController';
+import { Routes } from '../../shared/interfaces/routes.interface';
+import { authenticate } from '../../middlewares/auth.middleware';
 
-const router = Router();
+export class AuthRoute implements Routes {
+    public path = '/auth';
+    public router = Router();
 
-const userRepo = new UserRepository();
+    constructor(public authController: AuthController) {
+        this.initializeRoutes();
+    }
 
-const authService = new AuthService(userRepo);
-
-const authController = new AuthController(authService);
-router.post('/register', authController.register);
-router.post('/login', authController.login);
-
-
-router.get('/users', authController.getUsers);
-
-export default router;
+    private initializeRoutes() {
+        this.router.post('/register', this.authController.register);
+        this.router.post('/login', this.authController.login);
+        this.router.get('/users', authenticate, this.authController.getUsers);
+    }
+}

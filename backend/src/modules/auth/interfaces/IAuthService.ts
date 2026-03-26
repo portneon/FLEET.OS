@@ -5,5 +5,5 @@ export interface IAuthService {
     createUser(userData: { email: string; password: string; organizationId: string; role?: Role; name?: string }): Promise<User>;
     findUserByEmail(email: string): Promise<User | null>;
     register(data: { email: string; password: string; role: Role; name: string; businessName?: string }): Promise<User>;
-    login(email: string, password: string): Promise<{ user: User; organizationId: string }>;
+    login(email: string, password: string): Promise<{ token: string; user: User; organizationId: string }>;
 }

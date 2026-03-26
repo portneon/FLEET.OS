@@ -1,12 +1,13 @@
-import { User, Role, PrismaClient } from '@prisma/client';
+import { User, Role } from '@prisma/client';
 import { UserRepository } from '../repositories/UserRepository';
+import { prisma } from '../../../prisma';
 import * as bcrypt from 'bcrypt';
+import * as jwt from 'jsonwebtoken';
 import { IAuthService } from '../interfaces/IAuthService';
 
 export class AuthService implements IAuthService {
 
     private readonly SALT_ROUNDS = 10;
-    private prisma = new PrismaClient();
 
     constructor(private userRepo: UserRepository) {}
 
@@ -33,7 +34,7 @@ export class AuthService implements IAuthService {
         let organizationId: string;
 
         if (data.role === Role.ADMIN) {
-            const org = await this.prisma.organization.create({
+            const org = await prisma.organization.create({
                 data: {
                     name: data.businessName || `${data.name}`
                 }
@@ -55,7 +56,7 @@ export class AuthService implements IAuthService {
         });
     }
 
-    public async login(email: string, password: string): Promise<{ user: User; organizationId: string }> {
+    public async login(email: string, password: string): Promise<{ token: string; user: User; organizationId: string }> {
         const user = await this.userRepo.findByEmail(email);
         if (!user) {
             throw new Error("Invalid credentials");
@@ -66,7 +67,19 @@ export class AuthService implements IAuthService {
             throw new Error("Invalid credentials");
         }
 
+        const token = jwt.sign(
+            {
+                userId: user.id,
+                email: user.email,
+                role: user.role,
+                organizationId: user.organizationId
+            },
+            process.env.JWT_SECRET || 'default-secret',
+            { expiresIn: '24h' }
+        );
+
         return {
+            token,
             user,
             organizationId: user.organizationId
         };
