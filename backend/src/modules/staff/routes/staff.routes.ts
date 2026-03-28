@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { StaffController } from '../controllers/staff.controller';
-import { Routes } from '../../../interfaces/routes.interface';
+import { Routes } from '../../../shared/interfaces/routes.interface';
 import { requireAdmin } from '../../../middlewares/rbac.middleware';
+import { authenticate } from '../../../middlewares/auth.middleware';
 
 export class StaffRoute implements Routes {
     public path = '/staff';
@@ -13,12 +14,12 @@ export class StaffRoute implements Routes {
 
     private initializeRoutes() {
         // Admin only route
-        this.router.post(`${this.path}/register`, requireAdmin, this.staffController.registerStaff);
+        this.router.post('/register', authenticate, requireAdmin, this.staffController.registerStaff);
 
         // General staff login
-        this.router.post(`${this.path}/login`, this.staffController.loginStaff);
+        this.router.post('/login', this.staffController.loginStaff);
 
         // Admin gets all staff
-        this.router.get(`${this.path}`, requireAdmin, this.staffController.getStaff);
+        this.router.get('/', requireAdmin, this.staffController.getStaff);
     }
 }
