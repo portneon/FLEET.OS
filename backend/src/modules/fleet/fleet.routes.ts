@@ -1,10 +1,9 @@
 // src/modules/fleet/fleet.routes.ts
 
 import { Router } from 'express';
-import { PrismaVehicleRepository } from './repositories/PrismaVehicleRepository';
-import { VehicleService } from './services/VehicleService';
 import { VehicleController } from './controllers/VehicleController';
-import { Routes } from '../../interfaces/routes.interface';
+import { Routes } from '../../shared/interfaces/routes.interface';
+import { authenticate } from '../../middlewares/auth.middleware';
 
 export class FleetRoute implements Routes {
     public path = '/fleet';
@@ -16,16 +15,9 @@ export class FleetRoute implements Routes {
 
     private initializeRoutes() {
         // Register new vehicle
-        this.router.post(`${this.path}/register`, this.vehicleController.registerVehicle);
+        this.router.post('/register', authenticate, this.vehicleController.registerVehicle);
 
         // Get all vehicles in fleet
-        this.router.get(`${this.path}`, this.vehicleController.getFleet);
+        this.router.get('/', this.vehicleController.getFleet);
     }
 }
-
-// Export default router for backward compatibility if needed
-const vehicleRepo = new PrismaVehicleRepository();
-const vehicleService = new VehicleService(vehicleRepo);
-const vehicleController = new VehicleController(vehicleService);
-
-export default new FleetRoute(vehicleController).router;

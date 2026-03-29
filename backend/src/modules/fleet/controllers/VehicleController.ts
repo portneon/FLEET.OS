@@ -6,8 +6,10 @@ import { VehicleType } from '@prisma/client';
 
 export interface AuthRequest extends Request {
     user?: {
+        userId: string;
+        email: string;
+        role: string;
         organizationId: string;
-        id: string;
     };
 }
 
