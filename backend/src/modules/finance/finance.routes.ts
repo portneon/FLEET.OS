@@ -1,10 +1,19 @@
+// src/modules/finance/finance.routes.ts
+
 import { Router } from 'express';
 import { FinanceController } from './controllers/FinanceController';
+import { Routes } from '../../shared/interfaces/routes.interface';
 
-const router = Router();
-const financeController = new FinanceController();
+export class FinanceRoute implements Routes {
+    public path = '/finance';
+    public router = Router();
 
-router.get('/summary', financeController.getSummary);
-router.post('/record', financeController.addTransaction);
+    constructor(public financeController: FinanceController) {
+        this.initializeRoutes();
+    }
 
-export default router;
+    private initializeRoutes() {
+        this.router.get('/summary', this.financeController.getSummary);
+        this.router.post('/record', this.financeController.addTransaction);
+    }
+}
