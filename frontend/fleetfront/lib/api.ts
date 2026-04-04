@@ -14,44 +14,46 @@ export interface ApiResponse<T> {
 /**
  * Generic fetch wrapper with error handling
  */
-async function fetchAPI<T>(
+export async function fetchAPI<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
   try {
     const url = `${API_BASE_URL}${endpoint}`;
     
-    // Get orgId from localStorage
-    const organizationId = typeof window !== 'undefined' ? localStorage.getItem('orgId') : null;
-    
-    const headers: HeadersInit = {
+    // Read session from localStorage
+    const organizationId = typeof window !== 'undefined'
+      ? (localStorage.getItem('orgId') || '')
+      : '';
+    const token = typeof window !== 'undefined'
+      ? (localStorage.getItem('token') || '')
+      : '';
+    const userStr = typeof window !== 'undefined'
+      ? localStorage.getItem('user')
+      : null;
+    const user = userStr ? JSON.parse(userStr) : null;
+
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...(organizationId && { 'x-organization-id': organizationId }),
-      ...options.headers,
+      ...(organizationId ? { 'x-organization-id': organizationId } : {}),
+      ...(token          ? { 'Authorization': `Bearer ${token}` }   : {}),
+      // RBAC middleware uses x-admin-email for admin-only routes
+      ...(user?.email    ? { 'x-admin-email': user.email }          : {}),
+      ...(options.headers as Record<string, string> || {}),
     };
 
-    const response = await fetch(url, {
-      ...options,
-      headers,
-    });
+    const response = await fetch(url, { ...options, headers });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-      return {
-        error: errorData.error || `HTTP ${response.status}`,
-      };
+      return { error: errorData.error || `HTTP ${response.status}` };
     }
 
     const data = await response.json();
-    return {
-      data: data.data as T,
-      message: data.message,
-    };
+    return { data: data.data as T, message: data.message };
   } catch (error) {
     console.error(`API Error (${endpoint}):`, error);
-    return {
-      error: error instanceof Error ? error.message : 'Failed to fetch data',
-    };
+    return { error: error instanceof Error ? error.message : 'Failed to fetch data' };
   }
 }
 
@@ -94,13 +96,9 @@ export const staffAPI = {
   },
 };
 
-/**
- * Fleet/Vehicle API Methods
- */
+
 export const fleetAPI = {
-  /**
-   * Get all vehicles in the fleet
-   */
+ 
   getAll: async () => {
     return fetchAPI<any[]>('/fleet');
   },
@@ -148,4 +146,84 @@ export const authAPI = {
       body: JSON.stringify({ email, password }),
     });
   },
+};
+
+/**
+ * Finance API Methods
+ */
+export const financeAPI = {
+  getSummary: async () => fetchAPI<any>('/finance/summary'),
+
+  addTransaction: async (data: {
+    amount: number;
+    type: string;
+    category: string;
+    description?: string;
+  }) =>
+    fetchAPI<any>('/finance/record', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+};
+
+/**
+ * Transit API Methods (Routes &amp; Stops)
+ */
+export const transitAPI = {
+  // Routes
+  getRoutes: async () => fetchAPI<any[]>('/transit/routes'),
+
+  createRoute: async (name: string) =>
+    fetchAPI<any>('/transit/routes', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    }),
+
+  deleteRoute: async (routeId: string) =>
+    fetchAPI<any>(`/transit/routes/${routeId}`, { method: 'DELETE' }),
+
+  // Stops
+  getStops: async () => fetchAPI<any[]>('/transit/stops'),
+
+  createStop: async (data: { name: string; latitude: number; longitude: number }) =>
+    fetchAPI<any>('/transit/stops', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  // Link stop to route
+  addStopToRoute: async (routeId: string, stopId: string, sequence: number) =>
+    fetchAPI<any>(`/transit/routes/${routeId}/stops`, {
+      method: 'POST',
+      body: JSON.stringify({ stopId, sequence }),
+    }),
+};
+
+/**
+ * Trip / Dispatch API Methods
+ */
+export const tripAPI = {
+  getAll: async () => fetchAPI<any[]>('/trips'),
+
+  getActive: async () => fetchAPI<any[]>('/trips/active'),
+
+  schedule: async (data: {
+    routeId: string;
+    vehicleId: string;
+    driverId: string;
+    scheduledStart: string;
+  }) =>
+    fetchAPI<any>('/trips', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  start: async (tripId: string) =>
+    fetchAPI<any>(`/trips/${tripId}/start`, { method: 'PATCH' }),
+
+  end: async (tripId: string) =>
+    fetchAPI<any>(`/trips/${tripId}/end`, { method: 'PATCH' }),
+
+  cancel: async (tripId: string) =>
+    fetchAPI<any>(`/trips/${tripId}/cancel`, { method: 'PATCH' }),
 };
