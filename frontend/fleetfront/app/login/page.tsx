@@ -24,6 +24,7 @@ function Page() {
         setError(res.error)
       } else if (res.data) {
         // Store session data
+        localStorage.setItem('token', res.data.token)
         localStorage.setItem('orgId', res.data.organizationId)
         localStorage.setItem('user', JSON.stringify(res.data.user))
         
