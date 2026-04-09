@@ -1,0 +1,11 @@
+class Operator{
+    constructor() { }
+
+    getOperators() {
+        
+
+    }
+
+    
+
+}

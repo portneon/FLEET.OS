@@ -1,18 +1,19 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserRoute = void 0;
+exports.AuthRoute = void 0;
 const express_1 = require("express");
-const user_controller_1 = require("../controllers/user.controller");
-class UserRoute {
+class AuthRoute {
+    authController;
     path = '/users';
     router = (0, express_1.Router)();
-    userController = new user_controller_1.UserController();
-    constructor() {
+    constructor(authController) {
+        this.authController = authController;
         this.initializeRoutes();
     }
     initializeRoutes() {
-        this.router.get(`${this.path}`, this.userController.getUsers);
-        this.router.post(`${this.path}`, this.userController.createUser);
+        this.router.get(`${this.path}`, this.authController.getUsers);
+        this.router.post(`${this.path}`, this.authController.createUser);
+        this.router.post(`${this.path}/login`, this.authController.loginUser);
     }
 }
-exports.UserRoute = UserRoute;
+exports.AuthRoute = AuthRoute;

@@ -1,14 +1,75 @@
+// schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+model Organization {
+  id        String    @id @default(uuid())
+  name      String
+  createdAt DateTime  @default(now())
+  users     User[]
+  vehicles  Vehicle[]
+}
+
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id             String       @id @default(uuid())
+  email          String       @unique
+  password       String
+  role           Role         @default(DRIVER)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  driverProfile DriverProfile?
+  createdAt     DateTime       @default(now())
+}
+
+enum Role {
+  ADMIN
+  DISPATCHER
+  DRIVER
+  FINANCE
+}
+
+model DriverProfile {
+  id            String       @id @default(uuid())
+  userId        String       @unique
+  user          User         @relation(fields: [userId], references: [id])
+  licenseNumber String       @unique
+  experience    Int
+  performance   Float        @default(5.0)
+  status        DriverStatus @default(AVAILABLE)
+  createdAt     DateTime     @default(now())
+}
+
+enum DriverStatus {
+  AVAILABLE
+  ON_TRIP
+  OFF_DUTY
+}
+
+enum VehicleType {
+  BUS
+  TRUCK
+  VAN
+}
+
+model Vehicle {
+  id              String      @id @default(uuid())
+  vin             String      @unique // 17-character unique identifier
+  type            VehicleType
+  licensePlate    String      @unique
+  seatingCapacity Int? // Required if type is BUS
+  status          String      @default("IDLE") //
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
