@@ -10,7 +10,8 @@ const Sidebar = () => {
         { name: 'Overview', path: '/dashboard' },
         { name: 'Fleet', path: '/dashboard/fleet' },
         { name: 'Staff', path: '/dashboard/staff' },
-        { name: 'Financials', path: '/dashboard/finance' }
+        { name: 'Financials', path: '/dashboard/finance' },
+        { name: 'Transit & Dispatch', path: '/dashboard/transit' }
     ];
 
     return (

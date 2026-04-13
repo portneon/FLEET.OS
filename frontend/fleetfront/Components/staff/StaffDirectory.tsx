@@ -2,8 +2,8 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/Components/ui/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table"
 import { staffAPI } from "@/lib/api"
 import { Loader2 } from "lucide-react"
 
