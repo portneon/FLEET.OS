@@ -1,43 +1,40 @@
 "use client"
-import React, { useState } from 'react'
+import React from 'react'
+import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 
 const Sidebar = () => {
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    const pathname = usePathname();
+
+    const navItems = [
+        { name: 'Overview', path: '/dashboard' },
+        { name: 'Fleet', path: '/dashboard/fleet' },
+        { name: 'Staff', path: '/dashboard/staff' },
+        { name: 'Financials', path: '/dashboard/finance' }
+    ];
 
     return (
-        <div
-            className={`transition-all duration-500 ease-in-out bg-[#1A1A1A] border-r border-[#2A2A2A] min-h-screen flex flex-col ${isCollapsed ? 'w-20' : 'w-64'} md:relative fixed z-50`}
-        >
-            <div className={`flex items-center p-6 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
-                {!isCollapsed && <h1 className="text-[#F9F8F4] font-['Playfair_Display',_serif] text-2xl tracking-wide shrink-0">FleetOS</h1>}
-                <button
-                    onClick={() => setIsCollapsed(!isCollapsed)}
-                    className="text-[#8C877D] hover:text-[#F9F8F4] transition-colors p-2 shrink-0 flex items-center justify-center"
-                >
-                    {isCollapsed ? '→' : '←'}
-                </button>
+        <aside className="hidden md:flex flex-col w-64 border-r border-[#EBE6DD] bg-[#FBFBF9] p-6 min-h-screen">
+            <div className="mb-12">
+                <h1 className="text-2xl font-['Playfair_Display',serif] tracking-tight">FleetOS</h1>
+                <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#8C877D] mt-1">Admin Console</p>
             </div>
-
-            <nav className={`flex flex-col gap-6 p-6 mt-8 ${isCollapsed ? 'items-center' : 'items-start'}`}>
-                <a href="#overview" className="flex items-center gap-4 text-[#8C877D] group hover:text-[#F9F8F4] transition-colors outline-none">
-                    <span className="text-xl">⊞</span>
-                    {!isCollapsed && <span className="text-xs uppercase tracking-[0.2em] font-semibold">Overview</span>}
-                </a>
-
-                <a href="#fleet" className="flex items-center gap-4 text-[#8C877D] group hover:text-[#F9F8F4] transition-colors outline-none">
-                    <span className="text-xl">⚇</span>
-                    {!isCollapsed && <span className="text-xs uppercase tracking-[0.2em] font-semibold">Fleet</span>}
-                </a>
-
-                <a href="/dashboard" className="flex items-center gap-4 text-[#F9F8F4] transition-colors relative outline-none">
-                    <span className="text-xl">⚙</span>
-                    {!isCollapsed && <span className="text-xs uppercase tracking-[0.2em] font-semibold">Register Staff</span>}
-                    {/* Active page indicator */}
-                    <div className={`absolute ${isCollapsed ? 'left-[-32px]' : 'left-[-24px]'} w-1 h-full bg-[#DCD7CB]`}></div>
-                </a>
+            <nav className="flex flex-col gap-4 flex-1">
+                {navItems.map((item) => {
+                    const isActive = pathname === item.path || (item.path !== '/dashboard' && pathname?.startsWith(item.path));
+                    return (
+                        <Link 
+                            key={item.name} 
+                            href={item.path} 
+                            className={`text-sm font-light tracking-wide py-2 border-b transition-colors ${isActive ? 'border-[#1A1A1A] text-[#1A1A1A]' : 'border-transparent text-[#8C877D] hover:text-[#1A1A1A]'}`}
+                        >
+                            {item.name}
+                        </Link>
+                    )
+                })}
             </nav>
-        </div>
+        </aside>
     )
 }
 
-export default Sidebar
+export default Sidebar;

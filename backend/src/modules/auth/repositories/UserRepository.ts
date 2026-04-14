@@ -4,6 +4,7 @@ import { PrismaClient, User, Role } from '@prisma/client';
 
 export interface CreateUserDTO {
     email: string;
+    name: string;
     password: string;
     role: Role;
     organizationId: string;

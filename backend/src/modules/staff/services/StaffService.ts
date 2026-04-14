@@ -18,7 +18,8 @@ export class StaffService {
     
     const userDataWithHash = {
       ...userData,
-      password: hashedPassword
+      password: hashedPassword,
+      name: userData.name || userData.email
     };
 
     const user = await this.userRepo.create(userDataWithHash);
@@ -41,11 +42,20 @@ export class StaffService {
     
     const data = {
       email: staffData.email,
+      name: staffData.name || staffData.email,
       password: hashedPassword,
       organizationId: staffData.organizationId,
       role: staffData.role
     };
     
     return await this.userRepo.create(data);
+  }
+
+  public async loginStaff(email: string, password: string) {
+    const user = await this.userRepo.findByEmail(email);
+    if (user && await bcrypt.compare(password, user.password)) {
+        return user;
+    }
+    return null;
   }
 }

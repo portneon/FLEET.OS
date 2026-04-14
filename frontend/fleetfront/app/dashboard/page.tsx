@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Truck, Users, Activity, Banknote, Bell, Loader2 } from "lucide-react";
+import { staffAPI, fleetAPI } from '@/lib/api';
 
 export default function AdminDashboard() {
   const [staff, setStaff] = useState([]);
@@ -21,27 +22,20 @@ export default function AdminDashboard() {
   useEffect(() => {
     const syncSystemData = async () => {
       try {
-        const orgId = localStorage.getItem('orgId'); 
-        const headers = { 'x-organization-id': orgId || '' };
-
-    
         const [staffRes, fleetRes] = await Promise.all([
-          fetch('/api/staff', { headers }),
-          fetch('/api/fleet', { headers })
+          staffAPI.getAll(),
+          fleetAPI.getAll()
         ]);
 
-        const staffData = await staffRes.json();
-        const fleetData = await fleetRes.json();
-
-        if (staffData.data) {
-          setStaff(staffData.data);
-          // Calculate 'Served' entities vs 'Service' entities dynamically
-          const driverCount = staffData.data.filter((m: any) => m.role === 'DRIVER').length;
+        if (!staffRes.error && staffRes.data) {
+          setStaff(staffRes.data);
+          // Calculate driver count dynamically
+          const driverCount = staffRes.data.filter((m: any) => m.role === 'DRIVER').length;
           setStats(prev => ({ ...prev, driversOnDuty: driverCount }));
         }
 
-        if (fleetData.data) {
-          setStats(prev => ({ ...prev, activeFleet: fleetData.data.length }));
+        if (!fleetRes.error && fleetRes.data) {
+          setStats(prev => ({ ...prev, activeFleet: fleetRes.data.length }));
         }
       } catch (error) {
         console.error("System synchronization failed:", error);
@@ -65,23 +59,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FBFBF9] text-[#1A1A1A] flex flex-col md:flex-row font-sans">
-      {/* SIDEBAR */}
-      <aside className="hidden md:flex flex-col w-64 border-r border-[#EBE6DD] bg-[#FBFBF9] p-6">
-        <div className="mb-12">
-          <h1 className="text-2xl font-['Playfair_Display',serif] tracking-tight">System</h1>
-          <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#8C877D] mt-1">Admin Console</p>
-        </div>
-        <nav className="flex flex-col gap-4 flex-1">
-          {['Overview', 'Fleet', 'Staff', 'Financials'].map((item, i) => (
-            <a key={i} href="#" className={`text-sm font-light tracking-wide py-2 border-b ${i === 0 ? 'border-[#1A1A1A]' : 'border-transparent text-[#8C877D] hover:text-[#1A1A1A]'} transition-colors`}>
-              {item}
-            </a>
-          ))}
-        </nav>
-      </aside>
-
-      <main className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col bg-[#FBFBF9] text-[#1A1A1A] font-sans h-full">
         {/* TOP BAR */}
         <header className="flex items-center justify-between p-6 border-b border-[#EBE6DD] bg-[#FBFBF9]/80 backdrop-blur-sm sticky top-0 z-10">
           <h2 className="text-lg font-light tracking-wide">Operations Overview</h2>
@@ -101,7 +79,6 @@ export default function AdminDashboard() {
             <Button className="bg-[#1A1A1A] text-white rounded-none text-[10px] tracking-[0.2em] uppercase px-10 py-7">Generate Manifest</Button>
           </div>
 
-          {/* DYNAMIC KPI GRID */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             {[
               { label: "Revenue", value: `₹${stats.revenue.toLocaleString()}`, icon: Banknote },
@@ -120,47 +97,7 @@ export default function AdminDashboard() {
               </Card>
             ))}
           </div>
-
-          {/* DYNAMIC WORKFORCE TABLE */}
-          <Card className="border-[#EBE6DD] shadow-none rounded-none bg-white">
-            <CardHeader className="border-b border-[#EBE6DD] pb-8">
-              <CardTitle className="font-['Playfair_Display',serif] text-2xl">Workforce Ledger</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0 px-0">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-[#EBE6DD] hover:bg-transparent px-8">
-                    <TableHead className="pl-8 text-[10px] uppercase tracking-[0.2em] font-bold text-[#8C877D]">Entity</TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#8C877D]">Classification</TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#8C877D]">Identity</TableHead>
-                    <TableHead className="pr-8 text-right text-[10px] uppercase tracking-[0.2em] font-bold text-[#8C877D]">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {staff.length > 0 ? staff.map((member: any) => (
-                    <TableRow key={member.id} className="border-[#F5F2ED] hover:bg-[#FBFBF9] transition-colors px-8">
-                      <TableCell className="pl-8 font-medium text-sm py-6">{member.name}</TableCell>
-                      <TableCell className="text-[10px] uppercase tracking-widest text-[#8C877D]">
-                        {member.driverProfile ? "Served (Driver)" : `Service (${member.role})`}
-                      </TableCell>
-                      <TableCell className="text-xs font-mono text-[#C4BFAF]">
-                        {member.driverProfile?.licenseNumber || member.email.split('@')[0]}
-                      </TableCell>
-                      <TableCell className="pr-8 text-right">
-                        <Badge variant="outline" className="rounded-none border-[#1A1A1A] text-[#1A1A1A] text-[9px] font-bold uppercase tracking-tighter px-3">
-                          {member.driverProfile ? "Verified" : "Authorized"}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  )) : (
-                    <TableRow><TableCell colSpan={4} className="text-center py-20 text-[#C4BFAF] italic">No entities provisioned.</TableCell></TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
         </div>
-      </main>
     </div>
   );
 }

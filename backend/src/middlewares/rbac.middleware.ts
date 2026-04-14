@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { Role } from '@prisma/client';
 import { prisma } from '../prisma';
 
 export const requireAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -14,7 +15,7 @@ export const requireAdmin = async (req: Request, res: Response, next: NextFuncti
             where: { email: adminEmail }
         });
 
-        if (!user || user.role !== 'Admin') {
+        if (!user || user.role !== Role.ADMIN) {
             res.status(403).json({ error: 'Forbidden: Requires Admin privileges' });
             return;
         }

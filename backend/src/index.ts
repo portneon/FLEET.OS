@@ -1,28 +1,40 @@
 import { App } from './app';
-import { AuthRoute } from './routes/user.routes';
-import { StaffRoute } from './routes/staff.routes';
-import { AuthService } from './modules/auth/services/AuthService';
-import { UserRepository } from './modules/auth/repositories/UserRepository';
+
+import authRouter from './modules/auth/auth.routes';
+import fleetRouter from './modules/fleet/fleet.routes';
+
+// For Staff, we still wire it up manually as their staff.routes doesn't export a default router yet
+import { StaffRoute } from './modules/staff/routes/staff.routes';
 import { StaffService } from './modules/staff/services/StaffService';
 import { PrismaDriverRepository } from './modules/staff/repositories/PrismaDriverRepository';
-import { RoleService } from './services/role.service';
-import { AuthController } from './modules/auth/controllers/AuthController';
-import { StaffController } from './controllers/staff.controller';
+import { RoleService } from './modules/staff/services/role.service';
+import { StaffController } from './modules/staff/controllers/staff.controller';
+import { UserRepository } from './modules/auth/repositories/UserRepository';
 
+import financeRouter from './modules/finance/finance.routes';
+
+// 1. Auth Module
+const authRouteConfig = { router: authRouter, path: '/auth' };
+
+// 2. Staff Module
 const userRepo = new UserRepository();
-const authService = new AuthService(userRepo);
-const authController = new AuthController(authService);
-const authRoute = new AuthRoute(authController);
-
 const driverRepo = new PrismaDriverRepository();
 const roleService = new RoleService();
 const staffService = new StaffService(userRepo, driverRepo);
-const staffController = new StaffController(staffService, roleService);
-const staffRoute = new StaffRoute(staffController);
+const staffController = new StaffController(staffService as any, roleService);
+const staffRouteConfig = new StaffRoute(staffController);
+
+// 3. Fleet Module
+const fleetRouteConfig = { router: fleetRouter, path: '/fleet' };
+
+// 4. Finance Module
+const financeRouteConfig = { router: financeRouter, path: '/finance' };
 
 const app = new App([
-    authRoute,
-    staffRoute,
+    authRouteConfig,
+    staffRouteConfig,
+    fleetRouteConfig,
+    financeRouteConfig
 ]);
 
 app.listen();
