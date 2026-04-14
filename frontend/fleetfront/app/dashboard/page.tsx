@@ -1,166 +1,164 @@
-import React from 'react';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
+"use client"
+
+import React, { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Truck, Users, Activity, Banknote, Menu, Bell } from "lucide-react";
+import { Truck, Users, Activity, Banknote, Bell, Loader2 } from "lucide-react";
 
 export default function AdminDashboard() {
+  const [staff, setStaff] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    revenue: 0,
+    activeFleet: 0,
+    driversOnDuty: 0,
+    alerts: 0
+  });
+
+
+  useEffect(() => {
+    const syncSystemData = async () => {
+      try {
+        const orgId = localStorage.getItem('orgId'); 
+        const headers = { 'x-organization-id': orgId || '' };
+
+    
+        const [staffRes, fleetRes] = await Promise.all([
+          fetch('/api/staff', { headers }),
+          fetch('/api/fleet', { headers })
+        ]);
+
+        const staffData = await staffRes.json();
+        const fleetData = await fleetRes.json();
+
+        if (staffData.data) {
+          setStaff(staffData.data);
+          // Calculate 'Served' entities vs 'Service' entities dynamically
+          const driverCount = staffData.data.filter((m: any) => m.role === 'DRIVER').length;
+          setStats(prev => ({ ...prev, driversOnDuty: driverCount }));
+        }
+
+        if (fleetData.data) {
+          setStats(prev => ({ ...prev, activeFleet: fleetData.data.length }));
+        }
+      } catch (error) {
+        console.error("System synchronization failed:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    syncSystemData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#FBFBF9] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-6 h-6 animate-spin text-[#8C877D]" />
+          <p className="text-[10px] uppercase tracking-[0.3em] text-[#8C877D]">Initializing System...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row font-sans">
-      
-      {/* SIDEBAR (Desktop) */}
-      <aside className="hidden md:flex flex-col w-64 border-r border-border bg-background p-6">
+    <div className="min-h-screen bg-[#FBFBF9] text-[#1A1A1A] flex flex-col md:flex-row font-sans">
+      {/* SIDEBAR */}
+      <aside className="hidden md:flex flex-col w-64 border-r border-[#EBE6DD] bg-[#FBFBF9] p-6">
         <div className="mb-12">
           <h1 className="text-2xl font-['Playfair_Display',serif] tracking-tight">System</h1>
-          <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-muted-foreground mt-1">
-            Admin Console
-          </p>
+          <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#8C877D] mt-1">Admin Console</p>
         </div>
         <nav className="flex flex-col gap-4 flex-1">
-          {['Overview', 'Operators', 'Fleet Status', 'Financials', 'Settings'].map((item, i) => (
-            <a 
-              key={i} 
-              href="#" 
-              className={`text-sm font-light tracking-wide py-2 border-b ${i === 0 ? 'border-foreground text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'} transition-colors`}
-            >
+          {['Overview', 'Fleet', 'Staff', 'Financials'].map((item, i) => (
+            <a key={i} href="#" className={`text-sm font-light tracking-wide py-2 border-b ${i === 0 ? 'border-[#1A1A1A]' : 'border-transparent text-[#8C877D] hover:text-[#1A1A1A]'} transition-colors`}>
               {item}
             </a>
           ))}
         </nav>
-        <div className="mt-auto">
-           <Button variant="outline" className="w-full text-xs tracking-widest uppercase rounded-none border-border">
-             Sign Out
-           </Button>
-        </div>
       </aside>
 
-      {/* MAIN CONTENT AREA */}
       <main className="flex-1 flex flex-col">
-        
-        {/* MOBILE HEADER & DESKTOP TOP BAR */}
-        <header className="flex items-center justify-between p-6 border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-10">
-          <div className="md:hidden flex items-center gap-4">
-            <Menu className="w-5 h-5 text-muted-foreground" />
-            <span className="font-['Playfair_Display',serif] text-xl">System</span>
-          </div>
-          <div className="hidden md:block">
-             <h2 className="text-lg font-light tracking-wide">Operations Overview</h2>
-          </div>
+        {/* TOP BAR */}
+        <header className="flex items-center justify-between p-6 border-b border-[#EBE6DD] bg-[#FBFBF9]/80 backdrop-blur-sm sticky top-0 z-10">
+          <h2 className="text-lg font-light tracking-wide">Operations Overview</h2>
           <div className="flex items-center gap-6">
-            <Bell className="w-4 h-4 text-muted-foreground hover:text-foreground cursor-pointer transition-colors" />
-            <div className="w-8 h-8 bg-primary text-primary-foreground flex items-center justify-center text-xs font-serif">
-              A
-            </div>
+            <Bell className="w-4 h-4 text-[#8C877D]" />
+            <div className="w-8 h-8 bg-[#1A1A1A] text-white flex items-center justify-center text-xs font-serif italic">A</div>
           </div>
         </header>
 
-        {/* DASHBOARD CONTENT */}
         <div className="p-6 md:p-12 lg:p-16 flex-1 overflow-auto">
-          
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-4">
+          {/* WELCOME AREA */}
+          <div className="flex flex-col md:flex-row justify-between items-end mb-16">
             <div>
-              <h3 className="text-[10px] uppercase tracking-[0.2em] font-semibold text-muted-foreground mb-2">
-                Today's Summary
-              </h3>
-              <h2 className="text-4xl font-['Playfair_Display',serif] tracking-tight">
-                Welcome back, Admin.
-              </h2>
+              <h3 className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#8C877D] mb-2">Live Status</h3>
+              <h2 className="text-5xl font-['Playfair_Display',serif] tracking-tighter">System Overview.</h2>
             </div>
-            <Button className="rounded-none text-xs tracking-widest uppercase px-8 py-6">
-              Generate Report
-            </Button>
+            <Button className="bg-[#1A1A1A] text-white rounded-none text-[10px] tracking-[0.2em] uppercase px-10 py-7">Generate Manifest</Button>
           </div>
 
-          {/* KPI CARDS */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          {/* DYNAMIC KPI GRID */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             {[
-              { label: "Total Revenue", value: "₹428,500", icon: Banknote, trend: "+12.5% this week" },
-              { label: "Active Fleet", value: "142", icon: Truck, trend: "12 units offline" },
-              { label: "Drivers on Duty", value: "118", icon: Users, trend: "4 pending approvals" },
-              { label: "System Alerts", value: "3", icon: Activity, trend: "Requires attention" },
+              { label: "Revenue", value: `₹${stats.revenue.toLocaleString()}`, icon: Banknote },
+              { label: "Active Fleet", value: stats.activeFleet, icon: Truck },
+              { label: "Staff/Drivers", value: stats.driversOnDuty, icon: Users },
+              { label: "Alerts", value: stats.alerts, icon: Activity },
             ].map((stat, i) => (
-              <Card key={i} className="border-border shadow-none bg-card rounded-none">
+              <Card key={i} className="border-[#EBE6DD] shadow-none bg-white rounded-none border-l-4 border-l-[#1A1A1A]">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-[10px] uppercase tracking-[0.2em] font-semibold text-muted-foreground">
-                    {stat.label}
-                  </CardTitle>
-                  <stat.icon className="w-4 h-4 text-muted-foreground" />
+                  <CardTitle className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#8C877D]">{stat.label}</CardTitle>
+                  <stat.icon className="w-3 h-3 text-[#C4BFAF]" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-light font-['Playfair_Display',serif]">{stat.value}</div>
-                  <p className="text-xs text-muted-foreground mt-2 font-light">
-                    {stat.trend}
-                  </p>
                 </CardContent>
               </Card>
             ))}
           </div>
 
-          {/* RECENT ACTIVITY TABLE */}
-          <Card className="border-border shadow-none rounded-none">
-            <CardHeader className="border-b border-border pb-6">
-              <CardTitle className="font-['Playfair_Display',serif] text-2xl">Recent Registrations</CardTitle>
-              <CardDescription className="text-xs font-light tracking-wide text-muted-foreground">
-                Latest operator and driver sign-ups requiring verification.
-              </CardDescription>
+          {/* DYNAMIC WORKFORCE TABLE */}
+          <Card className="border-[#EBE6DD] shadow-none rounded-none bg-white">
+            <CardHeader className="border-b border-[#EBE6DD] pb-8">
+              <CardTitle className="font-['Playfair_Display',serif] text-2xl">Workforce Ledger</CardTitle>
             </CardHeader>
-            <CardContent className="pt-6">
+            <CardContent className="pt-0 px-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-border hover:bg-transparent">
-                    <TableHead className="text-[10px] uppercase tracking-[0.2em] font-semibold text-muted-foreground">Entity Name</TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-[0.2em] font-semibold text-muted-foreground">Type</TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-[0.2em] font-semibold text-muted-foreground">Status</TableHead>
-                    <TableHead className="text-[10px] uppercase tracking-[0.2em] font-semibold text-muted-foreground text-right">Action</TableHead>
+                  <TableRow className="border-[#EBE6DD] hover:bg-transparent px-8">
+                    <TableHead className="pl-8 text-[10px] uppercase tracking-[0.2em] font-bold text-[#8C877D]">Entity</TableHead>
+                    <TableHead className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#8C877D]">Classification</TableHead>
+                    <TableHead className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#8C877D]">Identity</TableHead>
+                    <TableHead className="pr-8 text-right text-[10px] uppercase tracking-[0.2em] font-bold text-[#8C877D]">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {[
-                    { name: "Apex Logistics", type: "Truck Operator", status: "Pending" },
-                    { name: "Arjun Kumar", type: "Driver", status: "Verified" },
-                    { name: "Coastal Transits", type: "Bus Operator", status: "Pending" },
-                    { name: "Michael Chen", type: "Driver", status: "In Review" },
-                  ].map((row, i) => (
-                    <TableRow key={i} className="border-border hover:bg-muted/30 transition-colors">
-                      <TableCell className="font-medium text-sm">{row.name}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{row.type}</TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant="outline" 
-                          className={`rounded-none text-[10px] uppercase tracking-wider ${
-                            row.status === 'Verified' ? 'border-green-900/30 text-green-900' : 
-                            'border-foreground text-foreground'
-                          }`}
-                        >
-                          {row.status}
+                  {staff.length > 0 ? staff.map((member: any) => (
+                    <TableRow key={member.id} className="border-[#F5F2ED] hover:bg-[#FBFBF9] transition-colors px-8">
+                      <TableCell className="pl-8 font-medium text-sm py-6">{member.name}</TableCell>
+                      <TableCell className="text-[10px] uppercase tracking-widest text-[#8C877D]">
+                        {member.driverProfile ? "Served (Driver)" : `Service (${member.role})`}
+                      </TableCell>
+                      <TableCell className="text-xs font-mono text-[#C4BFAF]">
+                        {member.driverProfile?.licenseNumber || member.email.split('@')[0]}
+                      </TableCell>
+                      <TableCell className="pr-8 text-right">
+                        <Badge variant="outline" className="rounded-none border-[#1A1A1A] text-[#1A1A1A] text-[9px] font-bold uppercase tracking-tighter px-3">
+                          {member.driverProfile ? "Verified" : "Authorized"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" className="text-xs hover:bg-transparent hover:underline rounded-none">
-                          Review
-                        </Button>
-                      </TableCell>
                     </TableRow>
-                  ))}
+                  )) : (
+                    <TableRow><TableCell colSpan={4} className="text-center py-20 text-[#C4BFAF] italic">No entities provisioned.</TableCell></TableRow>
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
-
         </div>
       </main>
     </div>
