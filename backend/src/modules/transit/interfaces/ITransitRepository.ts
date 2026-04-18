@@ -22,8 +22,19 @@ export type RouteWithStops = Route & {
     stops: (RouteStop & { stop: Stop })[];
 };
 
+export interface CreatePlannedRouteDTO {
+    name: string;
+    organizationId: string;
+    stops: {
+        name: string;
+        latitude: number;
+        longitude: number;
+    }[];
+}
+
 export interface ITransitRepository {
     createRoute(data: CreateRouteDTO): Promise<Route>;
+    planRoute(data: CreatePlannedRouteDTO): Promise<RouteWithStops>;
     findRouteById(id: string): Promise<RouteWithStops | null>;
     findAllRoutes(organizationId: string): Promise<RouteWithStops[]>;
     deleteRoute(id: string): Promise<void>;
@@ -34,4 +45,5 @@ export interface ITransitRepository {
 
     addStopToRoute(data: AddStopToRouteDTO): Promise<RouteStop>;
     removeStopFromRoute(routeId: string, stopId: string): Promise<void>;
+    shiftSequences(routeId: string, fromSequence: number, increment: number): Promise<void>;
 }

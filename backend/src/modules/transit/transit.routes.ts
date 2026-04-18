@@ -16,6 +16,7 @@ export class TransitRoute implements Routes {
     private initializeRoutes() {
         // Routes
         this.router.post('/routes', authenticate, this.transitController.createRoute);
+        this.router.post('/routes/plan', authenticate, this.transitController.planRoute);
         this.router.get('/routes', authenticate, this.transitController.getRoutes);
         this.router.get('/routes/:id', authenticate, this.transitController.getRouteById);
         this.router.delete('/routes/:id', authenticate, this.transitController.deleteRoute);

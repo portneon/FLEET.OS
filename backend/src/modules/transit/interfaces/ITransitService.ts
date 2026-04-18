@@ -1,8 +1,9 @@
 import { Stop } from '@prisma/client';
-import { CreateRouteDTO, CreateStopDTO, RouteWithStops } from './ITransitRepository';
+import { CreateRouteDTO, CreateStopDTO, RouteWithStops, CreatePlannedRouteDTO } from './ITransitRepository';
 
 export interface ITransitService {
     createRoute(data: CreateRouteDTO): Promise<RouteWithStops>;
+    planRoute(data: CreatePlannedRouteDTO): Promise<RouteWithStops>;
     getRoutes(organizationId: string): Promise<RouteWithStops[]>;
     getRouteById(id: string): Promise<RouteWithStops>;
     deleteRoute(id: string): Promise<void>;

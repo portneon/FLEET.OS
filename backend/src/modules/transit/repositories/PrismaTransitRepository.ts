@@ -3,6 +3,7 @@ import { prisma } from '../../../prisma';
 import {
     ITransitRepository,
     CreateRouteDTO,
+    CreatePlannedRouteDTO,
     CreateStopDTO,
     AddStopToRouteDTO,
     RouteWithStops
@@ -12,6 +13,40 @@ export class PrismaTransitRepository implements ITransitRepository {
 
     async createRoute(data: CreateRouteDTO): Promise<Route> {
         return await prisma.route.create({ data });
+    }
+
+    async planRoute(data: CreatePlannedRouteDTO): Promise<RouteWithStops> {
+        return await prisma.$transaction(async (tx) => {
+            const route = await tx.route.create({
+                data: {
+                    name: data.name,
+                    organizationId: data.organizationId
+                }
+            });
+
+            const routeStops = [];
+            for (let i = 0; i < data.stops.length; i++) {
+                const stopData = data.stops[i];
+                const stop = await tx.stop.create({
+                    data: {
+                        ...stopData,
+                        organizationId: data.organizationId
+                    }
+                });
+
+                const routeStop = await tx.routeStop.create({
+                    data: {
+                        routeId: route.id,
+                        stopId: stop.id,
+                        sequence: i + 1
+                    },
+                    include: { stop: true }
+                });
+                routeStops.push(routeStop);
+            }
+
+            return { ...route, stops: routeStops };
+        });
     }
 
     async findRouteById(id: string): Promise<RouteWithStops | null> {
@@ -60,5 +95,19 @@ export class PrismaTransitRepository implements ITransitRepository {
 
     async removeStopFromRoute(routeId: string, stopId: string): Promise<void> {
         await prisma.routeStop.deleteMany({ where: { routeId, stopId } });
+    }
+
+    async shiftSequences(routeId: string, fromSequence: number, increment: number): Promise<void> {
+        await prisma.routeStop.updateMany({
+            where: {
+                routeId,
+                sequence: { gte: fromSequence }
+            },
+            data: {
+                sequence: {
+                    increment
+                }
+            }
+        });
     }
 }

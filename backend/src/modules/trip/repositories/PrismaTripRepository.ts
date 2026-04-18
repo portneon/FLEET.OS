@@ -14,7 +14,8 @@ export class PrismaTripRepository implements ITripRepository {
             include: {
                 route: { include: { stops: { include: { stop: true }, orderBy: { sequence: 'asc' } } } },
                 vehicle: true,
-                driver: { include: { user: true } }
+                driver: { include: { user: true } },
+                bookings: true
             } as any
         });
     }
@@ -47,5 +48,9 @@ export class PrismaTripRepository implements ITripRepository {
         if (status === TripStatus.IN_PROGRESS) data.actualStart = timestamp ?? new Date();
         if (status === TripStatus.COMPLETED) data.actualEnd = timestamp ?? new Date();
         return await prisma.trip.update({ where: { id }, data });
+    }
+
+    async bookTrip(data: { tripId: string; userId: string; amount: number; organizationId: string }): Promise<any> {
+        return await prisma.booking.create({ data });
     }
 }

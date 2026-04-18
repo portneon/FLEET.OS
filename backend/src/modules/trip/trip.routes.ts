@@ -24,5 +24,8 @@ export class TripRoute implements Routes {
         this.router.patch('/:id/start', authenticate, this.tripController.startTrip);
         this.router.patch('/:id/end', authenticate, this.tripController.endTrip);
         this.router.patch('/:id/cancel', authenticate, this.tripController.cancelTrip);
+
+        // Passengers: Book trip
+        this.router.post('/:id/book', authenticate, this.tripController.bookTrip);
     }
 }

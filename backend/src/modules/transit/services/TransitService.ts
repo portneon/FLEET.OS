@@ -1,5 +1,5 @@
 import { Stop } from '@prisma/client';
-import { ITransitRepository, CreateRouteDTO, CreateStopDTO, RouteWithStops } from '../interfaces/ITransitRepository';
+import { ITransitRepository, CreateRouteDTO, CreateStopDTO, RouteWithStops, CreatePlannedRouteDTO } from '../interfaces/ITransitRepository';
 import { ITransitService } from '../interfaces/ITransitService';
 
 export class TransitService implements ITransitService {
@@ -12,6 +12,13 @@ export class TransitService implements ITransitService {
         const route = await this.transitRepo.createRoute(data);
         // Return with empty stops array
         return { ...route, stops: [] };
+    }
+
+    async planRoute(data: CreatePlannedRouteDTO): Promise<RouteWithStops> {
+        if (!data.name || !data.organizationId || !data.stops || data.stops.length < 2) {
+            throw new Error('Route name, organization ID, and at least 2 stops are required for planning.');
+        }
+        return await this.transitRepo.planRoute(data);
     }
 
     async getRoutes(organizationId: string): Promise<RouteWithStops[]> {
@@ -48,6 +55,9 @@ export class TransitService implements ITransitService {
         const stop = await this.transitRepo.findStopById(stopId);
         if (!stop) throw new Error(`Stop with ID ${stopId} not found.`);
         if (sequence < 1) throw new Error('Sequence must be a positive integer.');
+
+        // Shift existing stops if necessary
+        await this.transitRepo.shiftSequences(routeId, sequence, 1);
 
         await this.transitRepo.addStopToRoute({ routeId, stopId, sequence });
         return await this.getRouteById(routeId);

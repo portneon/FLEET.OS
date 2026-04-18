@@ -69,4 +69,13 @@ export class TripService implements ITripService {
         if (!trip) throw new Error('Trip not found.');
         return trip;
     }
+
+    async bookTrip(data: { tripId: string; userId: string; amount: number; organizationId: string }): Promise<any> {
+        const trip = await this.tripRepo.findById(data.tripId);
+        if (!trip) throw new Error('Trip not found.');
+        if (trip.status !== TripStatus.SCHEDULED && trip.status !== TripStatus.IN_PROGRESS) {
+            throw new Error('Cannot book a trip that is completed or cancelled.');
+        }
+        return await this.tripRepo.bookTrip(data);
+    }
 }

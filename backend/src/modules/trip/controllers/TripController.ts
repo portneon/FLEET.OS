@@ -81,4 +81,26 @@ export class TripController {
             res.status(400).json({ error: error.message });
         }
     };
+
+    public bookTrip = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const orgId = req.headers['x-organization-id'] as string;
+            if (!orgId) { res.status(400).json({ error: 'Organization ID is required' }); return; }
+
+            const { userId, amount } = req.body;
+            if (!userId || amount === undefined) {
+                res.status(400).json({ error: 'userId and amount are required' }); return;
+            }
+
+            const booking = await this.tripService.bookTrip({
+                tripId: req.params.id,
+                userId,
+                amount,
+                organizationId: orgId
+            });
+            res.status(201).json({ data: booking, message: 'Trip booked successfully' });
+        } catch (error: any) {
+            res.status(400).json({ error: error.message });
+        }
+    };
 }

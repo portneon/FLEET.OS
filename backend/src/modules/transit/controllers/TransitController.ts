@@ -21,6 +21,24 @@ export class TransitController {
         }
     };
 
+    public planRoute = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const orgId = req.headers['x-organization-id'] as string;
+            if (!orgId) { res.status(400).json({ error: 'Organization ID is required' }); return; }
+
+            const { name, stops } = req.body;
+            if (!name || !stops || !Array.isArray(stops) || stops.length < 2) {
+                res.status(400).json({ error: 'Route name and at least two stops (start and end) are required' });
+                return;
+            }
+
+            const route = await this.transitService.planRoute({ name, organizationId: orgId, stops });
+            res.status(201).json({ data: route, message: 'Route planned successfully from A to B' });
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
+    };
+
     public getRoutes = async (req: Request, res: Response): Promise<void> => {
         try {
             const orgId = req.headers['x-organization-id'] as string;
@@ -82,7 +100,7 @@ export class TransitController {
         }
     };
 
-    // --- ROUTE-STOP LINKING ---
+   
 
     public addStopToRoute = async (req: Request, res: Response): Promise<void> => {
         try {

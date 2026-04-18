@@ -9,4 +9,5 @@ export interface ITripService {
     getTrips(organizationId: string): Promise<Trip[]>;
     getActiveTrips(organizationId: string): Promise<Trip[]>;
     getTripById(tripId: string): Promise<Trip>;
+    bookTrip(data: { tripId: string; userId: string; amount: number; organizationId: string }): Promise<any>;
 }
