@@ -36,6 +36,7 @@ model User {
   bookings      Booking[]
 
   createdAt     DateTime       @default(now())
+  isActive      Boolean        @default(true)
 }
 
 enum Role {

@@ -6,4 +6,7 @@ export interface IStaffService {
     findAllStaff(orgId: string): Promise<User[]>;
     loginStaff(email: string, password: string): Promise<User | null>;
     getStaffHistory(userId: string): Promise<User | null>;
+    updateStaff(userId: string, data: any): Promise<User>;
+    deleteStaff(userId: string): Promise<User>;
+    toggleStaffStatus(userId: string): Promise<User>;
 }

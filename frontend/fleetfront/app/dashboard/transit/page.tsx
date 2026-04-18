@@ -36,6 +36,9 @@ export default function TransitOperations() {
   const [selectedTrip, setSelectedTrip] = useState<any>(null)
   const [tripDetailsLoading, setTripDetailsLoading] = useState(false)
 
+  const [selectedRoute, setSelectedRoute] = useState<any>(null)
+  const [loadingRoute, setLoadingRoute] = useState(false)
+
 
   const [dispatchForm, setDispatchForm] = useState({ routeId: '', vehicleId: '', driverId: '', scheduledStart: '' })
 
@@ -167,6 +170,33 @@ export default function TransitOperations() {
     setSelectedTrip(null)
   }
 
+  const openRouteProfile = async (routeId: string) => {
+    setLoadingRoute(true)
+    setSelectedRoute({ id: routeId })
+    try {
+      const res = await transitAPI.getRouteById(routeId)
+      if (!res.error && res.data) {
+        setSelectedRoute(res.data)
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoadingRoute(false)
+    }
+  }
+
+  const closeRouteProfile = () => {
+    setSelectedRoute(null)
+  }
+
+  const handleRemoveStopFromRoute = async (routeId: string, stopId: string) => {
+    const res = await transitAPI.removeStopFromRoute(routeId, stopId)
+    if (!res.error) {
+      await openRouteProfile(routeId)
+      await fetchRoutes()
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#F9F8F4] text-[#1A1A1A] font-sans p-6 md:p-12 lg:p-16">
 
@@ -175,7 +205,78 @@ export default function TransitOperations() {
         <h1 className="text-5xl font-['Playfair_Display',_serif] tracking-tight">Transit &amp; Dispatch.</h1>
       </div>
 
-      {selectedTrip ? (
+      {selectedRoute ? (
+        <div className="animate-in fade-in duration-500">
+          <button
+            onClick={closeRouteProfile}
+            className="mb-8 border border-[#1A1A1A] text-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-[#F9F8F4] transition-colors rounded-none text-[10px] tracking-[0.2em] uppercase px-6 py-4"
+          >
+            ← Back to Planner
+          </button>
+
+          <div className="bg-[#FFFFFF] border border-[#DCD7CB] p-8 md:p-12 mb-8 relative">
+            {loadingRoute && !selectedRoute.stops ? (
+              <div className="flex justify-center py-20">
+                <Loader2 className="w-8 h-8 animate-spin text-[#1A1A1A]" strokeWidth={1} />
+              </div>
+            ) : (
+              <>
+                <div className="flex justify-between items-start mb-10 border-b border-[#DCD7CB] pb-8">
+                  <div>
+                    <h3 className="text-[10px] uppercase tracking-[0.2em] text-[#8C877D] font-semibold mb-2">
+                      Route Configuration
+                    </h3>
+                    <h2 className="text-4xl font-['Playfair_Display',_serif] text-[#1A1A1A] tracking-wide mb-4">
+                      {selectedRoute.name}
+                    </h2>
+                    <span className="text-[10px] uppercase tracking-wider px-3 py-1 font-bold border border-[#DCD7CB] text-[#8C877D]">
+                      {selectedRoute.stops?.length || 0} Scheduled Halts
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[9px] uppercase tracking-widest text-[#8C877D] mb-1">Route ID</p>
+                    <p className="text-sm font-mono text-[#1A1A1A]">{selectedRoute.id?.toUpperCase()}</p>
+                    <p className="text-[9px] uppercase tracking-widest text-[#8C877D] mb-1 mt-4">Created At</p>
+                    <p className="text-sm text-[#1A1A1A]">{new Date(selectedRoute.createdAt).toLocaleDateString()}</p>
+                  </div>
+                </div>
+
+                <div className="mb-12">
+                   <h4 className="text-[10px] uppercase tracking-widest text-[#8C877D] font-semibold mb-8">Sequential Stop Timeline</h4>
+                   <div className="space-y-6">
+                      {selectedRoute.stops?.sort((a: any, b: any) => a.sequence - b.sequence).map((rs: any, idx: number) => (
+                         <div key={idx} className="flex items-center gap-6 p-6 border border-[#DCD7CB] bg-[#F9F8F4] hover:border-[#1A1A1A] transition-colors group">
+                            <div className="w-10 h-10 flex items-center justify-center border border-[#1A1A1A] font-serif italic text-lg opacity-30 group-hover:opacity-100 transition-opacity">
+                               {rs.sequence}
+                            </div>
+                            <div className="flex-1">
+                               <p className="font-['Playfair_Display',_serif] text-[#1A1A1A] text-xl">{rs.stop?.name}</p>
+                               <p className="text-[10px] text-[#8C877D] font-mono mt-1 opacity-60">Lat: {rs.stop?.latitude?.toFixed(4)} • Lng: {rs.stop?.longitude?.toFixed(4)}</p>
+                            </div>
+                            <button 
+                              onClick={() => handleRemoveStopFromRoute(selectedRoute.id, rs.stopId)}
+                              className="text-[9px] uppercase tracking-widest text-red-700 bg-red-50 border border-red-200 px-4 py-2 hover:bg-red-700 hover:text-white transition-colors opacity-0 group-hover:opacity-100 font-bold"
+                            >
+                              Remove Halt
+                            </button>
+                         </div>
+                      ))}
+                   </div>
+                </div>
+
+                <div className="pt-8 border-t border-[#DCD7CB] flex justify-end">
+                   <button 
+                     onClick={() => transitAPI.deleteRoute(selectedRoute.id).then(() => { closeRouteProfile(); fetchRoutes(); })}
+                     className="text-[10px] uppercase tracking-[0.2em] text-[#7f1d1d] hover:underline font-bold"
+                   >
+                     Terminate Global Route
+                   </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      ) : selectedTrip ? (
         <div className="animate-in fade-in duration-500">
           <button
             onClick={closeTripProfile}
@@ -380,15 +481,20 @@ export default function TransitOperations() {
             ) : routes.length > 0 ? (
               <div className="flex flex-col gap-3">
                 {routes.map(r => (
-                  <div key={r.id} className="flex items-center justify-between p-4 border border-[#DCD7CB] bg-[#FDFCF9] hover:border-[#1A1A1A] transition-colors">
+                  <div key={r.id} 
+                    onClick={() => openRouteProfile(r.id)}
+                    className="flex items-center justify-between p-4 border border-[#DCD7CB] bg-[#FDFCF9] hover:border-[#1A1A1A] transition-colors cursor-pointer group">
                     <div>
-                      <p className="text-sm font-medium text-[#1A1A1A]">{r.name}</p>
+                      <p className="text-sm font-medium text-[#1A1A1A] group-hover:underline">{r.name}</p>
                       <p className="text-[9px] uppercase tracking-widest text-[#8C877D] mt-1">{r.stops.length} Stop{r.stops.length !== 1 ? 's' : ''}</p>
                     </div>
-                    <button onClick={() => transitAPI.deleteRoute(r.id).then(fetchRoutes)}
-                      className="text-[#8C877D] hover:text-[#1A1A1A] transition-colors p-2">
-                      <X className="w-4 h-4" strokeWidth={1.5} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                       <button onClick={(e) => { e.stopPropagation(); openRouteProfile(r.id); }} className="text-[9px] uppercase tracking-widest text-[#1A1A1A] font-bold border border-[#1A1A1A] px-3 py-1 opacity-0 group-hover:opacity-100 transition-opacity">Manage</button>
+                       <button onClick={(e) => { e.stopPropagation(); transitAPI.deleteRoute(r.id).then(fetchRoutes); }}
+                        className="text-[#8C877D] hover:text-[#7f1d1d] transition-colors p-2">
+                        <X className="w-4 h-4" strokeWidth={1.5} />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

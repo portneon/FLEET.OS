@@ -67,6 +67,10 @@ export class AuthService implements IAuthService {
             throw new Error("Invalid credentials");
         }
 
+        if (!user.isActive) {
+            throw new Error("This account has been disabled by an administrator.");
+        }
+
         const token = jwt.sign(
             {
                 userId: user.id,

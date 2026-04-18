@@ -38,6 +38,26 @@ function Page() {
     }
   }
 
+  const handleDemoLogin = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await authAPI.login('admin@lazy.com', 'lazy123');
+      if (res.error) {
+        setError(res.error);
+      } else if (res.data) {
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('orgId', res.data.organizationId);
+        localStorage.setItem('user', JSON.stringify(res.data.user));
+        router.push('/dashboard');
+      }
+    } catch (err) {
+      setError('Demo access unavailable. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const inputStyle = "w-full bg-transparent border-b border-[#DCD7CB] py-4 md:py-3 text-[#1A1A1A] font-light text-base md:text-lg placeholder:text-[#C4BFAF] placeholder:font-light focus:outline-none focus:border-[#1A1A1A] transition-colors rounded-none";
   const labelStyle = "text-[10px] uppercase tracking-[0.2em] font-semibold text-[#8C877D] mb-2 block";
 
@@ -138,6 +158,21 @@ function Page() {
             ) : (
               'Sign In'
             )}
+          </button>
+
+          <div className="relative flex items-center gap-4 my-2">
+            <div className="flex-1 h-[1px] bg-[#EBE6DD]"></div>
+            <span className="text-[9px] uppercase tracking-widest text-[#8C877D] font-bold">OR</span>
+            <div className="flex-1 h-[1px] bg-[#EBE6DD]"></div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleDemoLogin}
+            disabled={loading}
+            className="w-full bg-[#FFFFFF] text-[#1A1A1A] text-xs font-bold uppercase tracking-[0.2em] py-5 border border-[#1A1A1A] transition-all duration-300 hover:bg-[#F9F8F4] group flex justify-center items-center gap-3"
+          >
+            <span className="group-hover:translate-x-1 transition-transform">Explore Lazy Logistics Demo →</span>
           </button>
 
         </form>

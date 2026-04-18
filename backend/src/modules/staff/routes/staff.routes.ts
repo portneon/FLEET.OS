@@ -24,5 +24,10 @@ export class StaffRoute implements Routes {
 
         // Get single staff history
         this.router.get('/:id/history', authenticate, this.staffController.getStaffHistory);
+
+        // Management routes
+        this.router.put('/:id', authenticate, requireAdmin, this.staffController.updateStaff);
+        this.router.patch('/:id/status', authenticate, requireAdmin, this.staffController.toggleStatus);
+        this.router.delete('/:id', authenticate, requireAdmin, this.staffController.deleteStaff);
     }
 }

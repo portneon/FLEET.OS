@@ -122,4 +122,31 @@ export class StaffController {
             res.status(500).json({ error: 'Failed to retrieve staff profile' });
         }
     };
+
+    public updateStaff = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const updated = await this.staffService.updateStaff(req.params.id, req.body);
+            res.status(200).json({ data: updated, message: 'Staff updated' });
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to update staff' });
+        }
+    };
+
+    public deleteStaff = async (req: Request, res: Response): Promise<void> => {
+        try {
+            await this.staffService.deleteStaff(req.params.id);
+            res.status(200).json({ message: 'Staff deleted' });
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to delete staff' });
+        }
+    };
+
+    public toggleStatus = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const updated = await this.staffService.toggleStaffStatus(req.params.id);
+            res.status(200).json({ data: updated, message: 'Status toggled' });
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to toggle status' });
+        }
+    };
 }

@@ -62,4 +62,18 @@ export class StaffService {
   public async getStaffHistory(userId: string) {
     return await this.userRepo.findStaffHistory(userId);
   }
+
+  public async updateStaff(userId: string, data: any) {
+    return await this.userRepo.update(userId, data);
+  }
+
+  public async deleteStaff(userId: string) {
+    return await this.userRepo.delete(userId);
+  }
+
+  public async toggleStaffStatus(userId: string) {
+    const user = await this.userRepo.findStaffHistory(userId);
+    if (!user) throw new Error('User not found');
+    return await this.userRepo.update(userId, { isActive: !user.isActive });
+  }
 }

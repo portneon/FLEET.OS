@@ -1,10 +1,10 @@
 "use client"
 
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
+import { Button } from "@/Components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
+import { Badge } from "@/Components/ui/badge";
 import { Truck, Users, Activity, Banknote, Bell, Loader2, ArrowRight, AlertCircle } from "lucide-react";
 import { staffAPI, fleetAPI, financeAPI, tripAPI } from '@/lib/api';
 

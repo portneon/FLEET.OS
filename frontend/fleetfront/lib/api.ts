@@ -87,6 +87,25 @@ export const staffAPI = {
   getHistory: async (staffId: string) => {
     return fetchAPI<any>(`/staff/${staffId}/history`);
   },
+
+  updateStaff: async (staffId: string, data: any) => {
+    return fetchAPI<any>(`/staff/${staffId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  toggleStatus: async (staffId: string) => {
+    return fetchAPI<any>(`/staff/${staffId}/status`, {
+      method: 'PATCH',
+    });
+  },
+
+  deleteStaff: async (staffId: string) => {
+    return fetchAPI<any>(`/staff/${staffId}`, {
+      method: 'DELETE',
+    });
+  },
 };
 
 

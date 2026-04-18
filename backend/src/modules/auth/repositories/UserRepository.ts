@@ -53,4 +53,17 @@ export class UserRepository {
             }
         });
     }
+
+    public async update(id: string, data: Partial<User>): Promise<User> {
+        return await prisma.user.update({
+            where: { id },
+            data,
+        });
+    }
+
+    public async delete(id: string): Promise<User> {
+        return await prisma.user.delete({
+            where: { id },
+        });
+    }
 }
