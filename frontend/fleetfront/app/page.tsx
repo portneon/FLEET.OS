@@ -9,38 +9,38 @@ import Footer from '@/Components/Footer'
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#F9F8F4] text-[#1A1A1A] font-sans selection:bg-[#1A1A1A] selection:text-[#F9F8F4]">
+    <div className="min-h-screen bg-[#FFFFFF] text-[#000000] font-sans selection:bg-[#000000] selection:text-[#FFFFFF]">
       <Navbar />
 
 
-      <section className="relative min-h-[90vh] pt-10 flex flex-col lg:flex-row border-b border-[#DCD7CB]">
+      <section className="relative min-h-[90vh] pt-10 flex flex-col lg:flex-row border-b border-[#FFFFFF]">
 
         {/* Text Half */}
         <div className="flex-1 flex flex-col justify-center px-6 py-20 lg:p-20 xl:p-32 z-10">
-          <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-[#8C877D] mb-8">
+          <h3 className="text-[10px] uppercase tracking-[0.4em] font-bold text-[#FFFFFF] mb-8">
             FleetOS — Edition 1.0
           </h3>
-          <h1 className="text-6xl md:text-8xl xl:text-[9rem] font-['Playfair_Display',serif] leading-[0.9] tracking-tighter text-[#1A1A1A]">
+          <h1 className="text-6xl md:text-8xl xl:text-[9rem] font-['Playfair_Display',serif] leading-[0.9] tracking-tighter text-[#000000]">
             Precision <br />
-            <span className="italic font-light text-[#5A5750]">in Motion.</span>
+            <span className="italic font-light text-[#000000]">in Motion.</span>
           </h1>
-          <p className="mt-12 text-[#8C877D] text-lg md:text-xl font-light max-w-md leading-relaxed">
+          <p className="mt-12 text-[#FFFFFF] text-lg md:text-xl font-light max-w-md leading-relaxed">
             The premier architecture for orchestrated fleet operations. Managing assets, personnel, and capital with absolute clarity.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 mt-16">
-            <Link href="/Signup" className="bg-[#1A1A1A] text-[#F9F8F4] px-10 py-5 text-[10px] uppercase tracking-[0.2em] font-semibold hover:bg-[#333333] transition-all duration-500 flex items-center justify-center gap-4 rounded-none">
+            <Link href="/Signup" className="bg-[#000000] text-[#FFFFFF] px-10 py-5 text-[10px] uppercase tracking-[0.2em] font-semibold hover:bg-[#000000] transition-all duration-500 flex items-center justify-center gap-4 rounded-none">
               Enroll Now <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
             </Link>
-            <Link href="/login" className="border border-[#DCD7CB] bg-transparent text-[#1A1A1A] px-10 py-5 text-[10px] uppercase tracking-[0.2em] font-semibold hover:bg-[#EBE6DD] transition-all duration-500 flex items-center justify-center rounded-none">
+            <Link href="/login" className="border border-[#FFFFFF] bg-transparent text-[#000000] px-10 py-5 text-[10px] uppercase tracking-[0.2em] font-semibold hover:bg-[#FFFFFF] transition-all duration-500 flex items-center justify-center rounded-none">
               Operator Login
             </Link>
           </div>
         </div>
 
 
-        <div className="flex-1 relative lg:border-l border-[#DCD7CB] bg-[#FDFCF9] p-6 lg:p-12 flex items-center justify-center">
-          <div className="relative w-full h-[60vh] lg:h-full min-h-[500px] border border-[#EBE6DD] overflow-hidden group">
+        <div className="flex-1 relative lg:border-l border-[#FFFFFF] bg-[#FFFFFF] p-6 lg:p-12 flex items-center justify-center">
+          <div className="relative w-full h-[60vh] lg:h-full min-h-[500px] border border-[#FFFFFF] overflow-hidden group">
 
             <Image
               src="/image1.png"
@@ -55,14 +55,14 @@ export default function Home() {
       </section>
 
       {/* VALUE PROP SECTION - The "Swiss Grid" approach */}
-      <section id="features" className="bg-[#F9F8F4] border-b border-[#DCD7CB]">
+      <section id="features" className="bg-[#FFFFFF] border-b border-[#FFFFFF]">
         <div className="grid grid-cols-1 lg:grid-cols-2">
 
           {/* Header Block */}
-          <div className="p-12 lg:p-24 border-b lg:border-b-0 lg:border-r border-[#DCD7CB] flex flex-col justify-center">
-            <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-[#8C877D] mb-6">Structural Excellence</h3>
+          <div className="p-12 lg:p-24 border-b lg:border-b-0 lg:border-r border-[#FFFFFF] flex flex-col justify-center">
+            <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-[#FFFFFF] mb-6">Structural Excellence</h3>
             <h2 className="text-4xl md:text-5xl font-['Playfair_Display',serif] leading-tight">
-              Built for the <br />Modern <span className="italic font-light text-[#5A5750]">Transportation Era.</span>
+              Built for the <br />Modern <span className="italic font-light text-[#000000]">Transportation Era.</span>
             </h2>
           </div>
 
@@ -76,15 +76,15 @@ export default function Home() {
             ].map((item, i) => (
               <div
                 key={i}
-                className={`p-10 lg:p-12 group hover:bg-[#FDFCF9] transition-colors duration-500
-                  ${i % 2 === 0 ? 'border-b sm:border-r border-[#DCD7CB]' : 'border-b border-[#DCD7CB]'}
+                className={`p-10 lg:p-12 group hover:bg-[#FFFFFF] transition-colors duration-500
+                  ${i % 2 === 0 ? 'border-b sm:border-r border-[#FFFFFF]' : 'border-b border-[#FFFFFF]'}
                   ${i > 1 ? 'sm:border-b-0' : ''}
                 `}
               >
                 {/* strokeWidth={1} makes the icons look like delicate ink drawings */}
-                <item.icon className="w-8 h-8 mb-8 text-[#1A1A1A]" strokeWidth={1} />
+                <item.icon className="w-8 h-8 mb-8 text-[#000000]" strokeWidth={1} />
                 <h4 className="text-[10px] uppercase tracking-widest font-semibold mb-3">{item.title}</h4>
-                <p className="text-sm text-[#8C877D] font-light leading-relaxed">{item.desc}</p>
+                <p className="text-sm text-[#FFFFFF] font-light leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -92,15 +92,15 @@ export default function Home() {
       </section>
 
       {/* MODULES - Table of Contents Style */}
-      <section className="py-24 lg:py-32 bg-[#F9F8F4]">
+      <section className="py-24 lg:py-32 bg-[#FFFFFF]">
         <div className="max-w-5xl mx-auto px-6 lg:px-12">
 
           <div className="mb-20">
-            <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-[#8C877D] mb-4">Comprehensive Suite</h3>
+            <h3 className="text-[10px] uppercase tracking-[0.3em] font-bold text-[#FFFFFF] mb-4">Comprehensive Suite</h3>
             <h2 className="text-4xl md:text-5xl font-['Playfair_Display',serif]">Operational Modules.</h2>
           </div>
 
-          <div className="flex flex-col border-t border-[#1A1A1A]">
+          <div className="flex flex-col border-t border-[#000000]">
             {[
               { number: "01", title: "Vehicle Gallery", desc: "High-level manifest management for buses, trucks, and vans.", link: "/dashboard/fleet" },
               { number: "02", title: "Workforce Ledger", desc: "Sophisticated personnel management and role-based provisioning.", link: "/dashboard/staff" },
@@ -109,20 +109,20 @@ export default function Home() {
               <Link
                 href={module.link}
                 key={i}
-                className="group flex flex-col md:flex-row md:items-center justify-between py-10 border-b border-[#DCD7CB] hover:bg-[#FDFCF9] transition-colors px-4 -mx-4"
+                className="group flex flex-col md:flex-row md:items-center justify-between py-10 border-b border-[#FFFFFF] hover:bg-[#FFFFFF] transition-colors px-4 -mx-4"
               >
                 <div className="flex items-start md:items-center gap-8 md:gap-16 mb-4 md:mb-0">
-                  <span className="text-xs font-['Playfair_Display',serif] italic text-[#8C877D]">{module.number}</span>
+                  <span className="text-xs font-['Playfair_Display',serif] italic text-[#FFFFFF]">{module.number}</span>
                   <h4 className="text-2xl lg:text-4xl font-['Playfair_Display',serif] group-hover:italic transition-all duration-300">
                     {module.title}
                   </h4>
                 </div>
 
                 <div className="flex items-center justify-between md:w-1/2 ml-12 md:ml-0">
-                  <p className="text-sm text-[#8C877D] font-light leading-relaxed max-w-xs">
+                  <p className="text-sm text-[#FFFFFF] font-light leading-relaxed max-w-xs">
                     {module.desc}
                   </p>
-                  <ArrowRight className="w-5 h-5 text-[#8C877D] group-hover:text-[#1A1A1A] group-hover:translate-x-2 transition-all duration-300" strokeWidth={1} />
+                  <ArrowRight className="w-5 h-5 text-[#FFFFFF] group-hover:text-[#000000] group-hover:translate-x-2 transition-all duration-300" strokeWidth={1} />
                 </div>
               </Link>
             ))}
@@ -131,15 +131,15 @@ export default function Home() {
       </section>
 
 
-      <section className="py-32 lg:py-48 bg-[#1A1A1A] text-[#F9F8F4] text-center px-6">
+      <section className="py-32 lg:py-48 bg-[#000000] text-[#FFFFFF] text-center px-6">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-5xl md:text-7xl font-['Playfair_Display',serif] mb-12 italic font-light tracking-tight text-[#EBE6DD]">
+          <h2 className="text-5xl md:text-7xl font-['Playfair_Display',serif] mb-12 italic font-light tracking-tight text-[#FFFFFF]">
             Ready to orchestrate your fleet?
           </h2>
-          <Link href="/Signup" className="inline-block bg-[#F9F8F4] text-[#1A1A1A] px-16 py-6 text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-[#EBE6DD] transition-all duration-500 rounded-none">
+          <Link href="/Signup" className="inline-block bg-[#FFFFFF] text-[#000000] px-16 py-6 text-[10px] uppercase tracking-[0.3em] font-bold hover:bg-[#FFFFFF] transition-all duration-500 rounded-none">
             Begin Digital Transformation
           </Link>
-          <p className="mt-12 text-[#8C877D] text-[10px] uppercase tracking-widest">
+          <p className="mt-12 text-[#FFFFFF] text-[10px] uppercase tracking-widest">
             Enterprise setup takes less than 2 minutes.
           </p>
         </div>

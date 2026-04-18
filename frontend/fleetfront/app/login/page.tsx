@@ -12,14 +12,14 @@ function Page() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
     try {
       const res = await authAPI.login(email, password)
-      
+
       if (res.error) {
         setError(res.error)
       } else if (res.data) {
@@ -27,8 +27,8 @@ function Page() {
         localStorage.setItem('token', res.data.token)
         localStorage.setItem('orgId', res.data.organizationId)
         localStorage.setItem('user', JSON.stringify(res.data.user))
-        
-        // Redirect to dashboard
+
+
         router.push('/dashboard')
       }
     } catch (err) {
@@ -38,28 +38,36 @@ function Page() {
     }
   }
 
+  const inputStyle = "w-full bg-transparent border-b border-[#DCD7CB] py-4 md:py-3 text-[#1A1A1A] font-light text-base md:text-lg placeholder:text-[#C4BFAF] placeholder:font-light focus:outline-none focus:border-[#1A1A1A] transition-colors rounded-none";
+  const labelStyle = "text-[10px] uppercase tracking-[0.2em] font-semibold text-[#8C877D] mb-2 block";
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F9F8F4] p-6 md:p-12 text-[#1A1A1A]">
+    <div className="min-h-screen flex items-center justify-center bg-[#F9F8F4] p-6 md:p-12 text-[#1A1A1A] font-sans selection:bg-[#1A1A1A] selection:text-[#F9F8F4]">
+
+
       <div className="w-full max-w-lg bg-transparent md:bg-white/60 md:backdrop-blur-sm p-4 md:p-12 lg:p-16 border-none md:border md:border-[#EBE6DD] shadow-none md:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.03)] transition-all duration-500">
 
         <div className="mb-12 text-center">
           <h2 className="text-4xl md:text-5xl font-['Playfair_Display',_serif] tracking-tight text-[#1A1A1A]">
-            Welcome
+            Welcome Back
           </h2>
           <p className="mt-4 text-[#8C877D] text-xs md:text-sm font-light tracking-wide px-4 md:px-0">
-            Please enter your details to access your account.
+            Please enter your details to access your workspace.
           </p>
         </div>
 
+        {/* Minimalist Error State */}
         {error && (
-          <div className="mb-8 p-4 bg-[#FDF4F4] text-[#8B3A3A] border border-[#F4DADA] text-[10px] uppercase tracking-widest text-center">
-            {error}
+          <div className="mb-8 border border-[#7f1d1d]/20 bg-[#fef2f2] p-4 text-center">
+            <p className="text-[10px] uppercase tracking-widest text-[#7f1d1d] font-semibold">{error}</p>
           </div>
         )}
 
         <form className="flex flex-col gap-10 md:gap-8" onSubmit={handleLogin}>
+
+          {/* Role Selection */}
           <div className="relative flex flex-col">
-            <label htmlFor="Role" className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#8C877D] mb-2">
+            <label htmlFor="Role" className={labelStyle}>
               Account Role
             </label>
             <select
@@ -73,13 +81,15 @@ function Page() {
               <option value="USER">Standard User</option>
               <option value="DRIVER">Driver</option>
             </select>
-            <div className="absolute right-0 bottom-4 pointer-events-none text-[#8C877D]">
+
+            <div className="absolute right-0 bottom-4 md:bottom-3 pointer-events-none text-[#8C877D]">
               ↓
             </div>
           </div>
 
+
           <div className="flex flex-col">
-            <label htmlFor="email" className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#8C877D] mb-2">
+            <label htmlFor="email" className={labelStyle}>
               Email Address
             </label>
             <input
@@ -87,39 +97,61 @@ function Page() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@example.com"
-              className="w-full bg-transparent border-b border-[#DCD7CB] py-4 md:py-3 text-[#1A1A1A] font-light text-base md:text-lg placeholder:text-[#C4BFAF] placeholder:font-light focus:outline-none focus:border-[#1A1A1A] transition-colors rounded-none"
+              placeholder="name@company.com"
+              className={inputStyle}
               required
             />
           </div>
 
-          <div className="flex flex-col">
-            <label htmlFor="password" className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#8C877D] mb-2">
-              Password
-            </label>
+
+          <div className="flex flex-col relative">
+            <div className="flex justify-between items-end w-full">
+              <label htmlFor="password" className={labelStyle}>
+                Password
+              </label>
+              <a href="#" className="text-[9px] uppercase tracking-widest text-[#8C877D] hover:text-[#1A1A1A] transition-colors pb-2">
+                Recover?
+              </a>
+            </div>
             <input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full bg-transparent border-b border-[#DCD7CB] py-4 md:py-3 text-[#1A1A1A] font-light text-base md:text-lg placeholder:text-[#C4BFAF] focus:outline-none focus:border-[#1A1A1A] transition-colors rounded-none"
+              className={inputStyle}
               required
             />
           </div>
 
+
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-6 md:mt-8 bg-[#1A1A1A] text-[#F9F8F4] text-xs font-semibold uppercase tracking-[0.2em] py-5 transition-all duration-300 hover:bg-[#333333] hover:shadow-lg rounded-none flex items-center justify-center gap-2"
+            className="w-full mt-4 bg-[#1A1A1A] text-[#F9F8F4] text-xs font-semibold uppercase tracking-[0.2em] py-5 transition-all duration-300 hover:bg-[#333333] hover:shadow-lg rounded-none disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-3"
           >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Log In'}
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" strokeWidth={2} />
+                Authenticating...
+              </>
+            ) : (
+              'Sign In'
+            )}
           </button>
 
-          <p className="text-center text-[#8C877D] text-[10px] uppercase tracking-widest mt-4">
-            Don't have an account? <a href="/Signup" className="text-[#1A1A1A] font-bold underline">Register</a>
-          </p>
         </form>
+
+        {/* Footer Text */}
+        <div className="mt-12 text-center border-t border-[#EBE6DD] pt-8">
+          <p className="text-[10px] uppercase tracking-widest text-[#8C877D]">
+            No access?{' '}
+            <a href="/Signup" className="font-bold text-[#1A1A1A] border-b border-[#1A1A1A] pb-0.5 hover:text-[#5A5750] hover:border-[#5A5750] transition-colors">
+              Request Workspace
+            </a>
+          </p>
+        </div>
+
       </div>
     </div>
   )

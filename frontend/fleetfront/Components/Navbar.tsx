@@ -46,7 +46,7 @@ const Navbar = () => {
                         Login
                     </Link>
                     <Link href="/Signup" className="bg-[#1A1A1A] text-[#F9F8F4] px-8 py-4 text-[10px] uppercase tracking-[0.2em] font-bold hover:bg-[#333333] transition-all duration-300 rounded-none border border-[#1A1A1A]">
-                        Enroll Now
+                        Join Now
                     </Link>
                 </div>
 
@@ -73,7 +73,7 @@ const Navbar = () => {
                     </Link>
 
                     <Link href="/Signup" className="bg-[#1A1A1A] text-[#F9F8F4] mt-4 p-5 text-center text-[10px] uppercase tracking-[0.3em] font-bold rounded-none" onClick={() => setMobileMenuOpen(false)}>
-                        Begin Enrollment
+                        Join Now
                     </Link>
                 </div>
             </div>

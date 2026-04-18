@@ -10,27 +10,27 @@ function Page() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
     const [success, setSuccess] = useState('')
-    
-    // Shared state
+
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
-    
-    // Admin specific state
+
+
     const [businessName, setBusinessName] = useState('')
     const [showPassword, setShowPassword] = useState(false)
 
-    const handleSignup = async (e: React.FormEvent) => {
+    const handleSignup = async (e) => {
         e.preventDefault()
         setLoading(true)
         setError('')
         setSuccess('')
 
         try {
-            const signupData: any = {
+            const signupData = {
                 name,
                 email,
                 password,
+                businessName,
                 role
             }
 
@@ -39,7 +39,7 @@ function Page() {
             }
 
             const res = await authAPI.register(signupData)
-            
+
             if (res.error) {
                 setError(res.error)
             } else {
@@ -55,11 +55,13 @@ function Page() {
         }
     }
 
-    const inputStyle = "w-full bg-transparent border-b border-[#DCD7CB] py-4 pl-2 md:py-3 text-[#1A1A1A] font-light text-base md:text-lg placeholder:text-[#C4BFAF] placeholder:font-light focus:outline-none focus:border-[#1A1A1A] transition-colors rounded-none";
-    const labelStyle = "text-[10px] uppercase tracking-[0.2em] font-semibold text-[#8C877D] mb-2";
+  
+    const inputStyle = "w-full bg-transparent border-b border-[#DCD7CB] py-4 md:py-3 text-[#1A1A1A] font-light text-base md:text-lg placeholder:text-[#C4BFAF] placeholder:font-light focus:outline-none focus:border-[#1A1A1A] transition-colors rounded-none";
+    const labelStyle = "text-[10px] uppercase tracking-[0.2em] font-semibold text-[#8C877D] mb-2 block";
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[#F9F8F4] p-6 md:p-12 text-[#1A1A1A]">
+        <div className="min-h-screen flex items-center justify-center bg-[#F9F8F4] p-6 md:p-12 text-[#1A1A1A] font-sans selection:bg-[#1A1A1A] selection:text-[#F9F8F4]">
+
             <div className="w-full max-w-xl bg-transparent md:bg-white/60 md:backdrop-blur-sm p-4 md:p-12 lg:p-16 border-none md:border md:border-[#EBE6DD] shadow-none md:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.03)] transition-all duration-500">
 
                 <div className="mb-12 text-center">
@@ -71,19 +73,22 @@ function Page() {
                     </p>
                 </div>
 
+                {/* Restyled Error State */}
                 {error && (
-                    <div className="mb-8 p-4 bg-[#FDF4F4] text-[#8B3A3A] border border-[#F4DADA] text-[10px] uppercase tracking-widest text-center">
-                        {error}
+                    <div className="mb-8 border border-[#7f1d1d]/20 bg-[#fef2f2] p-4 text-center">
+                        <p className="text-[10px] uppercase tracking-widest text-[#7f1d1d] font-semibold">{error}</p>
                     </div>
                 )}
 
+                {/* Restyled Success State */}
                 {success && (
-                    <div className="mb-8 p-4 bg-[#F3F4F0] text-[#4A5D23] border border-[#D5E1C8] text-[10px] uppercase tracking-widest text-center">
-                        {success}
+                    <div className="mb-8 border border-[#14532d]/20 bg-[#f0fdf4] p-4 text-center">
+                        <p className="text-[10px] uppercase tracking-widest text-[#14532d] font-semibold">{success}</p>
                     </div>
                 )}
 
                 <form className="flex flex-col gap-10 md:gap-8" onSubmit={handleSignup}>
+
                     <div className="relative flex flex-col">
                         <label htmlFor="Role" className={labelStyle}>Account Role</label>
                         <select
@@ -96,35 +101,35 @@ function Page() {
                             <option value="ADMIN">Administrator</option>
                             <option value="USER">Standard User</option>
                         </select>
-                        <div className="absolute right-0 bottom-4 pointer-events-none text-[#8C877D]">↓</div>
+                        <div className="absolute right-0 bottom-4 md:bottom-3 pointer-events-none text-[#8C877D]">↓</div>
                     </div>
 
                     <div className="flex flex-col gap-10 md:gap-8 animate-in fade-in duration-500">
                         <div className="flex flex-col">
                             <label className={labelStyle}>Full Name</label>
-                            <input 
+                            <input
                                 type="text" required
                                 value={name} onChange={(e) => setName(e.target.value)}
-                                placeholder="Jane Doe" className={inputStyle} 
+                                placeholder="Jane Doe" className={inputStyle}
                             />
                         </div>
 
                         <div className="flex flex-col">
                             <label className={labelStyle}>Email Address</label>
-                            <input 
+                            <input
                                 type="email" required
                                 value={email} onChange={(e) => setEmail(e.target.value)}
-                                placeholder="name@example.com" className={inputStyle} 
+                                placeholder="name@example.com" className={inputStyle}
                             />
                         </div>
 
                         {role === 'ADMIN' && (
                             <div className="flex flex-col animate-in slide-in-from-top-2 duration-300">
                                 <label className={labelStyle}>Business Name</label>
-                                <input 
+                                <input
                                     type="text" required
                                     value={businessName} onChange={(e) => setBusinessName(e.target.value)}
-                                    placeholder="Apex Logistics" className={inputStyle} 
+                                    placeholder="Apex Logistics" className={inputStyle}
                                 />
                             </div>
                         )}
@@ -153,14 +158,26 @@ function Page() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full mt-6 md:mt-8 bg-[#1A1A1A] text-[#F9F8F4] text-xs font-semibold uppercase tracking-[0.2em] py-5 transition-all duration-300 hover:bg-[#333333] hover:shadow-lg rounded-none flex items-center justify-center gap-2"
+                        className="w-full mt-6 md:mt-8 bg-[#1A1A1A] text-[#F9F8F4] text-xs font-semibold uppercase tracking-[0.2em] py-5 transition-all duration-300 hover:bg-[#333333] hover:shadow-lg rounded-none disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-3"
                     >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Complete Registration'}
+                        {loading ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin" strokeWidth={2} />
+                                Processing...
+                            </>
+                        ) : (
+                            'Complete Registration'
+                        )}
                     </button>
 
-                    <p className="text-center text-[#8C877D] text-[10px] uppercase tracking-widest mt-4">
-                        Already have an account? <a href="/login" className="text-[#1A1A1A] font-bold underline">Log In</a>
-                    </p>
+                    <div className="mt-8 text-center border-t border-[#EBE6DD] pt-8">
+                        <p className="text-[10px] uppercase tracking-widest text-[#8C877D]">
+                            Already have an account?{' '}
+                            <a href="/login" className="font-bold text-[#1A1A1A] border-b border-[#1A1A1A] pb-0.5 hover:text-[#5A5750] hover:border-[#5A5750] transition-colors">
+                                Log In
+                            </a>
+                        </p>
+                    </div>
                 </form>
             </div>
         </div>

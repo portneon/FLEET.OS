@@ -21,7 +21,6 @@ export async function fetchAPI<T>(
   try {
     const url = `${API_BASE_URL}${endpoint}`;
     
-    // Read session from localStorage
     const organizationId = typeof window !== 'undefined'
       ? (localStorage.getItem('orgId') || '')
       : '';
@@ -37,7 +36,6 @@ export async function fetchAPI<T>(
       'Content-Type': 'application/json',
       ...(organizationId ? { 'x-organization-id': organizationId } : {}),
       ...(token          ? { 'Authorization': `Bearer ${token}` }   : {}),
-      // RBAC middleware uses x-admin-email for admin-only routes
       ...(user?.email    ? { 'x-admin-email': user.email }          : {}),
       ...(options.headers as Record<string, string> || {}),
     };
@@ -57,20 +55,13 @@ export async function fetchAPI<T>(
   }
 }
 
-/**
- * Staff/Driver API Methods
- */
+
 export const staffAPI = {
-  /**
-   * Get all staff members
-   */
+
   getAll: async () => {
     return fetchAPI<any[]>('/staff');
   },
 
-  /**
-   * Register new staff member
-   */
   register: async (staffData: {
     email: string;
     name: string;
@@ -85,14 +76,16 @@ export const staffAPI = {
     });
   },
 
-  /**
-   * Login staff member
-   */
+
   login: async (email: string, password: string) => {
     return fetchAPI<any>('/staff/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
+  },
+
+  getHistory: async (staffId: string) => {
+    return fetchAPI<any>(`/staff/${staffId}/history`);
   },
 };
 
@@ -116,6 +109,10 @@ export const fleetAPI = {
       method: 'POST',
       body: JSON.stringify(vehicleData),
     });
+  },
+
+  getHistory: async (vehicleId: string) => {
+    return fetchAPI<any>(`/fleet/${vehicleId}/history`);
   },
 };
 
@@ -197,6 +194,16 @@ export const transitAPI = {
       method: 'POST',
       body: JSON.stringify({ stopId, sequence }),
     }),
+
+  // Plan full route A to B with waypoints
+  planRoute: async (data: {
+    name: string;
+    stops: { name: string; latitude: number; longitude: number }[];
+  }) =>
+    fetchAPI<any>('/transit/routes/plan', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 };
 
 /**
@@ -204,6 +211,8 @@ export const transitAPI = {
  */
 export const tripAPI = {
   getAll: async () => fetchAPI<any[]>('/trips'),
+  
+  getById: async (tripId: string) => fetchAPI<any>(`/trips/${tripId}`),
 
   getActive: async () => fetchAPI<any[]>('/trips/active'),
 
@@ -226,4 +235,10 @@ export const tripAPI = {
 
   cancel: async (tripId: string) =>
     fetchAPI<any>(`/trips/${tripId}/cancel`, { method: 'PATCH' }),
+
+  book: async (tripId: string, data: { userId: string; amount: number }) =>
+    fetchAPI<any>(`/trips/${tripId}/book`, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
 };

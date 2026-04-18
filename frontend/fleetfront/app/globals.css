@@ -90,30 +90,30 @@
   /* Alabaster Ivory Background */
   --background: #F9F8F4;
   --foreground: #1A1A1A;
-  
+
   /* Cards blend into the paper with a very subtle difference */
-  --card: #Fdfcf9; 
+  --card: #Fdfcf9;
   --card-foreground: #1A1A1A;
-  
+
   --popover: #Fdfcf9;
   --popover-foreground: #1A1A1A;
-  
+
   /* Charcoal Black for buttons and primary accents */
   --primary: #1A1A1A;
   --primary-foreground: #F9F8F4;
-  
+
   /* Muted accents for subtext and disabled states */
   --secondary: #EBE6DD;
   --secondary-foreground: #1A1A1A;
   --muted: #EBE6DD;
   --muted-foreground: #8C877D;
-  
+
   /* Delicate borders instead of harsh grays */
   --border: #DCD7CB;
   --input: #DCD7CB;
-  
+
   /* Sharp corners for the editorial print look */
-  --radius: 0rem; 
+  --radius: 0rem;
 }
 
 
@@ -127,9 +127,11 @@
     -moz-osx-font-smoothing: grayscale;
     @apply bg-background text-foreground;
   }
+
   * {
     @apply border-border outline-ring/50;
   }
+
   html {
     @apply font-sans;
   }
