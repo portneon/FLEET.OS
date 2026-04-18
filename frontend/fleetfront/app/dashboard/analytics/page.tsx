@@ -82,8 +82,8 @@ export default function AnalyticsDashboard() {
              </div>
              {period === 'custom' && (
                 <div className="flex gap-2">
-                   <input type="date" value={dateRange.start} onChange={e => setDateRange(p => ({...p, start: e.target.value}))} className="px-3 py-2 border border-[#DCD7CB] bg-transparent text-sm focus:outline-none focus:border-[#1A1A1A]" />
-                   <input type="date" value={dateRange.end} onChange={e => setDateRange(p => ({...p, end: e.target.value}))} className="px-3 py-2 border border-[#DCD7CB] bg-transparent text-sm focus:outline-none focus:border-[#1A1A1A]" />
+                   <input type="date" value={dateRange.start} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDateRange(p => ({...p, start: e.target.value}))} className="px-3 py-2 border border-[#DCD7CB] bg-transparent text-sm focus:outline-none focus:border-[#1A1A1A]" />
+                   <input type="date" value={dateRange.end} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDateRange(p => ({...p, end: e.target.value}))} className="px-3 py-2 border border-[#DCD7CB] bg-transparent text-sm focus:outline-none focus:border-[#1A1A1A]" />
                 </div>
              )}
           </div>

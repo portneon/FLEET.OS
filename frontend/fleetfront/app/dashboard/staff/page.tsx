@@ -304,11 +304,11 @@ export default function StaffDashboard() {
                   <form onSubmit={handleUpdateStaff} className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
                       <label className={labelStyle}>Full Name</label>
-                      <input type="text" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className={inputStyle} />
+                      <input type="text" value={editForm.name} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({...editForm, name: e.target.value})} className={inputStyle} />
                     </div>
                     <div>
                       <label className={labelStyle}>Email Address</label>
-                      <input type="email" value={editForm.email} onChange={e => setEditForm({...editForm, email: e.target.value})} className={inputStyle} />
+                      <input type="email" value={editForm.email} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditForm({...editForm, email: e.target.value})} className={inputStyle} />
                     </div>
                     <div className="flex gap-4 col-span-1 md:col-span-2 justify-end mt-4">
                        <Button type="button" onClick={() => setIsEditing(false)} variant="link" className="text-[10px] uppercase tracking-widest text-[#8C877D]">Cancel</Button>
@@ -421,7 +421,7 @@ export default function StaffDashboard() {
                   <label className={labelStyle}>Full Name</label>
                   <input
                     type="text" required placeholder="e.g. Michael Chen"
-                    value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    value={formData.name} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, name: e.target.value })}
                     className={inputStyle}
                   />
                 </div>
@@ -430,7 +430,7 @@ export default function StaffDashboard() {
                   <label className={labelStyle}>Email Address</label>
                   <input
                     type="email" required placeholder="e.g. m.chen@company.com"
-                    value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    value={formData.email} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, email: e.target.value })}
                     className={inputStyle}
                   />
                 </div>
@@ -439,7 +439,7 @@ export default function StaffDashboard() {
                   <label className={labelStyle}>Temporary Password</label>
                   <input
                     type="password" required placeholder="••••••••"
-                    value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    value={formData.password} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, password: e.target.value })}
                     className={inputStyle}
                   />
                 </div>
@@ -448,7 +448,7 @@ export default function StaffDashboard() {
                   <label className={labelStyle}>Assigned Role</label>
                   <select
                     value={formData.roleName}
-                    onChange={(e) => setFormData({ ...formData, roleName: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, roleName: e.target.value })}
                     className={`${inputStyle} appearance-none cursor-pointer`}
                   >
                     <option value="DRIVER">Driver</option>
@@ -465,7 +465,7 @@ export default function StaffDashboard() {
                       <label className={labelStyle}>License Number</label>
                       <input
                         type="text" required placeholder="e.g. MH1420110062821"
-                        value={formData.licenseNumber} onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
+                        value={formData.licenseNumber} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, licenseNumber: e.target.value })}
                         className={inputStyle}
                       />
                     </div>
@@ -473,7 +473,7 @@ export default function StaffDashboard() {
                       <label className={labelStyle}>Years of Experience</label>
                       <input
                         type="number" required placeholder="e.g. 5" min="0" max="50"
-                        value={formData.experience} onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
+                        value={formData.experience} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, experience: e.target.value })}
                         className={inputStyle}
                       />
                     </div>

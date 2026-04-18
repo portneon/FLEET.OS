@@ -420,7 +420,7 @@ export default function TransitOperations() {
               <div>
                 <label className={labelCls}>Global Trip Name</label>
                 <input type="text" required placeholder="e.g., Downtown-Airport Express"
-                  value={planRoute.name} onChange={e => setPlanRoute({ ...planRoute, name: e.target.value })}
+                  value={planRoute.name} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPlanRoute({ ...planRoute, name: e.target.value })}
                   className={inputCls} />
               </div>
 
@@ -444,14 +444,14 @@ export default function TransitOperations() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="md:col-span-2">
                         <input type="text" placeholder="Location Nomenclature" required
-                          value={stop.name} onChange={e => updatePlanStop(idx, 'name', e.target.value)}
+                          value={stop.name} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updatePlanStop(idx, 'name', e.target.value)}
                           className={inputCls} />
                       </div>
                       <input type="number" step="any" placeholder="Latitude" required
-                        value={stop.latitude} onChange={e => updatePlanStop(idx, 'latitude', e.target.value)}
+                        value={stop.latitude} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updatePlanStop(idx, 'latitude', e.target.value)}
                         className={inputCls} />
                       <input type="number" step="any" placeholder="Longitude" required
-                        value={stop.longitude} onChange={e => updatePlanStop(idx, 'longitude', e.target.value)}
+                        value={stop.longitude} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updatePlanStop(idx, 'longitude', e.target.value)}
                         className={inputCls} />
                     </div>
                   </div>
@@ -533,7 +533,7 @@ export default function TransitOperations() {
 
                 <div className="relative">
                   <label className={labelCls}>Route</label>
-                  <select value={dispatchForm.routeId} onChange={e => setDispatchForm(p => ({ ...p, routeId: e.target.value }))}
+                  <select value={dispatchForm.routeId} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setDispatchForm(p => ({ ...p, routeId: e.target.value }))}
                     className={`${inputCls} appearance-none cursor-pointer`}>
                     <option value="">Select a route…</option>
                     {routes.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
@@ -543,7 +543,7 @@ export default function TransitOperations() {
 
                 <div className="relative">
                   <label className={labelCls}>Vehicle</label>
-                  <select value={dispatchForm.vehicleId} onChange={e => setDispatchForm(p => ({ ...p, vehicleId: e.target.value }))}
+                  <select value={dispatchForm.vehicleId} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setDispatchForm(p => ({ ...p, vehicleId: e.target.value }))}
                     className={`${inputCls} appearance-none cursor-pointer`}>
                     <option value="">Select a vehicle…</option>
                     {vehicles.map(v => <option key={v.id} value={v.id}>{v.type} — {v.licensePlate}</option>)}
@@ -553,7 +553,7 @@ export default function TransitOperations() {
 
                 <div className="relative">
                   <label className={labelCls}>Driver</label>
-                  <select value={dispatchForm.driverId} onChange={e => setDispatchForm(p => ({ ...p, driverId: e.target.value }))}
+                  <select value={dispatchForm.driverId} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setDispatchForm(p => ({ ...p, driverId: e.target.value }))}
                     className={`${inputCls} appearance-none cursor-pointer`}>
                     <option value="">Select a driver…</option>
                     {drivers.map(d => <option key={d.driverProfile!.id} value={d.driverProfile!.id}>{d.name}</option>)}
@@ -564,7 +564,7 @@ export default function TransitOperations() {
                 <div>
                   <label className={labelCls}>Scheduled Departure</label>
                   <input type="datetime-local" required
-                    value={dispatchForm.scheduledStart} onChange={e => setDispatchForm(p => ({ ...p, scheduledStart: e.target.value }))}
+                    value={dispatchForm.scheduledStart} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDispatchForm(p => ({ ...p, scheduledStart: e.target.value }))}
                     className={inputCls} />
                 </div>
 

@@ -12,7 +12,7 @@ function Page() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleLogin = async (e) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
@@ -94,7 +94,7 @@ function Page() {
               name="Role"
               id="Role"
               value={role}
-              onChange={(e) => setRole(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setRole(e.target.value)}
               className="w-full bg-transparent border-b border-[#DCD7CB] py-4 md:py-3 text-[#1A1A1A] font-light text-base md:text-lg focus:outline-none focus:border-[#1A1A1A] transition-colors appearance-none cursor-pointer rounded-none"
             >
               <option value="ADMIN">Administrator</option>
@@ -116,7 +116,7 @@ function Page() {
               id="email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
               placeholder="name@company.com"
               className={inputStyle}
               required
@@ -137,7 +137,7 @@ function Page() {
               id="password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
               placeholder="••••••••"
               className={inputStyle}
               required

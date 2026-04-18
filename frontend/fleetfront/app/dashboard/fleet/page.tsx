@@ -262,7 +262,7 @@ export default function FleetDashboard() {
                   <label className={labelStyle}>Vehicle Type</label>
                   <select
                     value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, type: e.target.value })}
                     className={`${inputStyle} appearance-none cursor-pointer`}
                   >
                     <option value="TRUCK">Heavy Duty Truck</option>
@@ -278,7 +278,7 @@ export default function FleetDashboard() {
                     type="text" required
                     placeholder="e.g. 1HGCM82633A004"
                     value={formData.vin}
-                    onChange={(e) => setFormData({ ...formData, vin: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, vin: e.target.value })}
                     className={inputStyle}
                   />
                 </div>
@@ -289,7 +289,7 @@ export default function FleetDashboard() {
                     type="text" required
                     placeholder="e.g. MH-12-TR-9901"
                     value={formData.licensePlate}
-                    onChange={(e) => setFormData({ ...formData, licensePlate: e.target.value })}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, licensePlate: e.target.value })}
                     className={inputStyle}
                   />
                 </div>
@@ -301,7 +301,7 @@ export default function FleetDashboard() {
                       type="number" required min="1" max="150"
                       placeholder="e.g. 45"
                       value={formData.seatingCapacity}
-                      onChange={(e) => setFormData({ ...formData, seatingCapacity: e.target.value })}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, seatingCapacity: e.target.value })}
                       className={inputStyle}
                     />
                   </div>

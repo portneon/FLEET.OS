@@ -19,7 +19,7 @@ function Page() {
     const [businessName, setBusinessName] = useState('')
     const [showPassword, setShowPassword] = useState(false)
 
-    const handleSignup = async (e) => {
+    const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
         setError('')
@@ -95,7 +95,7 @@ function Page() {
                             name="Role"
                             id="Role"
                             value={role}
-                            onChange={(e) => setRole(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setRole(e.target.value)}
                             className="w-full bg-transparent border-b border-[#DCD7CB] py-4 md:py-3 text-[#1A1A1A] font-light text-base md:text-lg focus:outline-none focus:border-[#1A1A1A] transition-colors appearance-none cursor-pointer rounded-none"
                         >
                             <option value="ADMIN">Administrator</option>
@@ -109,7 +109,7 @@ function Page() {
                             <label className={labelStyle}>Full Name</label>
                             <input
                                 type="text" required
-                                value={name} onChange={(e) => setName(e.target.value)}
+                                value={name} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
                                 placeholder="Jane Doe" className={inputStyle}
                             />
                         </div>
@@ -118,7 +118,7 @@ function Page() {
                             <label className={labelStyle}>Email Address</label>
                             <input
                                 type="email" required
-                                value={email} onChange={(e) => setEmail(e.target.value)}
+                                value={email} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                                 placeholder="name@example.com" className={inputStyle}
                             />
                         </div>
@@ -128,7 +128,7 @@ function Page() {
                                 <label className={labelStyle}>Business Name</label>
                                 <input
                                     type="text" required
-                                    value={businessName} onChange={(e) => setBusinessName(e.target.value)}
+                                    value={businessName} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBusinessName(e.target.value)}
                                     placeholder="Apex Logistics" className={inputStyle}
                                 />
                             </div>
@@ -140,7 +140,7 @@ function Page() {
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     required
-                                    value={password} onChange={(e) => setPassword(e.target.value)}
+                                    value={password} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                                     placeholder="••••••••"
                                     className={`${inputStyle} pr-16`}
                                 />
