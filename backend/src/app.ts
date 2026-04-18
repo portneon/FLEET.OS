@@ -33,7 +33,7 @@ export class App {
                 if (!origin || allowedOrigins.includes(origin)) {
                     callback(null, true);
                 } else {
-                    callback(null, true); // permissive in dev — restrict in prod
+                    callback(null, true); 
                 }
             },
             credentials: true,
@@ -49,7 +49,11 @@ export class App {
         });
 
         routes.forEach(route => {
-            this.app.use('/api', route.router);
+            if (route.path) {
+                this.app.use(`/api${route.path}`, route.router);
+            } else {
+                this.app.use('/api', route.router);
+            }
         });
     }
 }

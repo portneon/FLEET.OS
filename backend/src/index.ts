@@ -1,7 +1,7 @@
 import { App } from './app';
 
 // --- Auth Module ---
-import { AuthRoute } from './modules/auth/auth.routes';
+import { AuthRoute } from './modules/auth/routes/auth.routes';
 import { AuthController } from './modules/auth/controllers/AuthController';
 import { AuthService } from './modules/auth/services/AuthService';
 import { UserRepository } from './modules/auth/repositories/UserRepository';

@@ -20,6 +20,7 @@ model Organization {
   routes       Route[]
   stops        Stop[]
   trips        Trip[]
+  bookings     Booking[]
 }
 
 model User {
@@ -32,6 +33,8 @@ model User {
   organization   Organization @relation(fields: [organizationId], references: [id])
 
   driverProfile DriverProfile?
+  bookings      Booking[]
+
   createdAt     DateTime       @default(now())
 }
 
@@ -140,6 +143,25 @@ enum TripStatus {
   CANCELLED
 }
 
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+model Booking {
+  id             String        @id @default(uuid())
+  tripId         String
+  trip           Trip          @relation(fields: [tripId], references: [id])
+  userId         String
+  user           User          @relation(fields: [userId], references: [id])
+  amount         Float
+  status         BookingStatus @default(CONFIRMED)
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime      @default(now())
+}
+
 model Trip {
   id             String        @id @default(uuid())
   routeId        String
@@ -154,6 +176,7 @@ model Trip {
   actualEnd      DateTime?
   organizationId String
   organization   Organization  @relation(fields: [organizationId], references: [id])
+  bookings       Booking[]
   createdAt      DateTime      @default(now())
 }
 
