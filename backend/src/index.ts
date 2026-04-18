@@ -37,6 +37,12 @@ import { TripController } from './modules/trip/controllers/TripController';
 import { TripService } from './modules/trip/services/TripService';
 import { PrismaTripRepository } from './modules/trip/repositories/PrismaTripRepository';
 
+// --- Analytics Module ---
+import { AnalyticsRoute } from './modules/analytics/analytics.routes';
+import { AnalyticsController } from './modules/analytics/controllers/AnalyticsController';
+import { AnalyticsService } from './modules/analytics/services/AnalyticsService';
+import { PrismaAnalyticsRepository } from './modules/analytics/repositories/PrismaAnalyticsRepository';
+
 // ============================================
 // Dependency Injection — Composition Root
 // ============================================
@@ -78,6 +84,12 @@ const tripService = new TripService(tripRepo);
 const tripController = new TripController(tripService);
 const tripRoute = new TripRoute(tripController);
 
+// 7. Analytics
+const analyticsRepo = new PrismaAnalyticsRepository();
+const analyticsService = new AnalyticsService(analyticsRepo);
+const analyticsController = new AnalyticsController(analyticsService);
+const analyticsRoute = new AnalyticsRoute(analyticsController);
+
 // ============================================
 // App Bootstrap
 // ============================================
@@ -89,6 +101,7 @@ const app = new App([
     financeRoute,
     transitRoute,
     tripRoute,
+    analyticsRoute,
 ]);
 
 app.listen();

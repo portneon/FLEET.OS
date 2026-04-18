@@ -59,6 +59,7 @@ export class VehicleController {
             const fleet = await this.vehicleService.getOrganizationFleet(organizationId);
             res.status(200).json({ data: fleet, message: 'Fleet retrieved successfully' });
         } catch (error) {
+            console.error('[VehicleController.getFleet] Error:', error);
             res.status(500).json({ error: 'Failed to retrieve fleet data' });
         }
     };

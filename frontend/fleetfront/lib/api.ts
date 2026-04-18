@@ -143,6 +143,13 @@ export const authAPI = {
       body: JSON.stringify({ email, password }),
     });
   },
+
+  /**
+   * Get all users
+   */
+  getUsers: async () => {
+    return fetchAPI<any[]>('/auth/users');
+  },
 };
 
 /**
@@ -170,6 +177,9 @@ export const transitAPI = {
   // Routes
   getRoutes: async () => fetchAPI<any[]>('/transit/routes'),
 
+  getRouteById: async (routeId: string) => 
+    fetchAPI<any>(`/transit/routes/${routeId}`),
+
   createRoute: async (name: string) =>
     fetchAPI<any>('/transit/routes', {
       method: 'POST',
@@ -193,6 +203,12 @@ export const transitAPI = {
     fetchAPI<any>(`/transit/routes/${routeId}/stops`, {
       method: 'POST',
       body: JSON.stringify({ stopId, sequence }),
+    }),
+
+  // Remove stop from route
+  removeStopFromRoute: async (routeId: string, stopId: string) =>
+    fetchAPI<any>(`/transit/routes/${routeId}/stops/${stopId}`, {
+      method: 'DELETE',
     }),
 
   // Plan full route A to B with waypoints
@@ -241,4 +257,16 @@ export const tripAPI = {
       method: 'POST',
       body: JSON.stringify(data)
     }),
+};
+
+/**
+ * Analytics API Methods
+ */
+export const analyticsAPI = {
+  getReport: async (period: string = 'weekly', customStart?: string, customEnd?: string) => {
+    let url = `/analytics/report?period=${period}`;
+    if (customStart) url += `&customStart=${customStart}`;
+    if (customEnd) url += `&customEnd=${customEnd}`;
+    return fetchAPI<any>(url);
+  }
 };
