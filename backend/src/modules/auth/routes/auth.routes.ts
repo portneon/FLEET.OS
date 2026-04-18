@@ -1,9 +1,9 @@
 // src/modules/auth/auth.routes.ts
 
 import { Router } from 'express';
-import { AuthController } from './controllers/AuthController';
-import { Routes } from '../../shared/interfaces/routes.interface';
-import { authenticate } from '../../middlewares/auth.middleware';
+import { AuthController } from '../controllers/AuthController';
+import { Routes } from '../../../shared/interfaces/routes.interface';
+import { authenticate } from '../../../middlewares/auth.middleware';
 
 export class AuthRoute implements Routes {
     public path = '/auth';

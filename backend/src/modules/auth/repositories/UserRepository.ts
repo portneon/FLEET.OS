@@ -33,4 +33,24 @@ export class UserRepository {
             }
         });
     }
+
+    public async findStaffHistory(userId: string): Promise<User | null> {
+        return await prisma.user.findUnique({
+            where: { id: userId },
+            include: {
+                driverProfile: {
+                    include: {
+                        trips: {
+                            include: {
+                                route: true,
+                                vehicle: true,
+                                bookings: true
+                            },
+                            orderBy: { createdAt: 'desc' }
+                        }
+                    }
+                }
+            }
+        });
+    }
 }
