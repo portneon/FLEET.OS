@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Truck, Users, Banknote, ShieldCheck, Zap, Globe, ArrowRight } from 'lucide-react'
@@ -8,6 +8,22 @@ import Navbar from '@/Components/Navbar'
 import Footer from '@/Components/Footer'
 
 export default function Home() {
+  useEffect(() => {
+    // Wake up the Render backend instance on landing
+    const wakeUpBackend = async () => {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api';
+        // Ping the root of the backend (removing /api if present to hit the "/" route)
+        const rootUrl = baseUrl.replace('/api', '/');
+        await fetch(rootUrl, { mode: 'no-cors' });
+        console.log('Backend wake-up signal sent.');
+      } catch (e) {
+        // Silent fail
+      }
+    };
+    wakeUpBackend();
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#FFFFFF] text-[#000000] font-sans selection:bg-[#000000] selection:text-[#FFFFFF]">
       <Navbar />
