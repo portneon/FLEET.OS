@@ -18,6 +18,9 @@ export class FleetRoute implements Routes {
         this.router.post('/register', authenticate, this.vehicleController.registerVehicle);
 
         // Get all vehicles in fleet
-        this.router.get('/', this.vehicleController.getFleet);
+        this.router.get('/', authenticate, this.vehicleController.getFleet);
+
+        // Get vehicle history
+        this.router.get('/:id/history', authenticate, this.vehicleController.getVehicleHistory);
     }
 }

@@ -17,4 +17,5 @@ export interface IVehicleRepository {
   findByOrganization(orgId: string): Promise<Vehicle[]>;
   updateStatus(id: string, status: string): Promise<Vehicle>;
   delete(id: string): Promise<void>;
+  getVehicleHistory(id: string): Promise<any>;
 }

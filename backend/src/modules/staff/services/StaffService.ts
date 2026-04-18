@@ -58,4 +58,8 @@ export class StaffService {
     }
     return null;
   }
+
+  public async getStaffHistory(userId: string) {
+    return await this.userRepo.findStaffHistory(userId);
+  }
 }

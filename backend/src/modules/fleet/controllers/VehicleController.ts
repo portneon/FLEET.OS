@@ -62,4 +62,19 @@ export class VehicleController {
             res.status(500).json({ error: 'Failed to retrieve fleet data' });
         }
     };
+
+    public getVehicleHistory = async (req: AuthRequest, res: Response): Promise<void> => {
+        try {
+            const organizationId = req.user?.organizationId || req.headers['x-organization-id'] as string;
+            if (!organizationId) {
+                res.status(403).json({ error: 'Organization context missing' });
+                return;
+            }
+
+            const history = await this.vehicleService.getVehicleHistory(req.params.id);
+            res.status(200).json({ data: history, message: 'Vehicle history retrieved successfully' });
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
+    };
 }

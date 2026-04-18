@@ -43,4 +43,20 @@ export class PrismaVehicleRepository implements IVehicleRepository {
   async delete(id: string): Promise<void> {
     await prisma.vehicle.delete({ where: { id } });
   }
+
+  async getVehicleHistory(id: string): Promise<any> {
+    return await prisma.vehicle.findUnique({
+      where: { id },
+      include: {
+        trips: {
+          include: {
+            route: true,
+            driver: { include: { user: true } },
+            bookings: true
+          },
+          orderBy: { createdAt: 'desc' }
+        }
+      }
+    });
+  }
 }

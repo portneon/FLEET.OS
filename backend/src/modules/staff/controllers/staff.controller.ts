@@ -96,4 +96,30 @@ export class StaffController {
             res.status(500).json({ error: 'Failed to find staff' });
         }
     };
+
+    public getStaffHistory = async (req: Request, res: Response): Promise<void> => {
+        try {
+            const orgId = req.headers['x-organization-id'] as string;
+            if (!orgId) {
+                res.status(400).json({ error: 'Organization ID is required' });
+                return;
+            }
+
+            const staff = await this.staffService.getStaffHistory(req.params.id);
+            if (!staff) {
+                res.status(404).json({ error: 'Staff member not found' });
+                return;
+            }
+
+            // Ensure the user exists within this org
+            if (staff.organizationId !== orgId) {
+                res.status(403).json({ error: 'Unauthorized access to staff profile' });
+                return;
+            }
+
+            res.status(200).json({ data: staff, message: 'Staff profile retrieved' });
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to retrieve staff profile' });
+        }
+    };
 }

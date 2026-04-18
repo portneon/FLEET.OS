@@ -21,5 +21,8 @@ export class StaffRoute implements Routes {
 
         // Admin gets all staff
         this.router.get('/', requireAdmin, this.staffController.getStaff);
+
+        // Get single staff history
+        this.router.get('/:id/history', authenticate, this.staffController.getStaffHistory);
     }
 }

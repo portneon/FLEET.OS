@@ -48,4 +48,10 @@ export class VehicleService implements IVehicleService {
 
     return await this.vehicleRepo.updateStatus(vehicleId, status.toUpperCase());
   }
+
+  public async getVehicleHistory(vehicleId: string): Promise<any> {
+    const history = await this.vehicleRepo.getVehicleHistory(vehicleId);
+    if (!history) throw new Error("Vehicle not found.");
+    return history;
+  }
 }
