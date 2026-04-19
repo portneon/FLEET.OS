@@ -31,6 +31,7 @@ export class AuthController {
             const createdUser = await this.authService.register(userData);
             res.status(201).json({ data: createdUser, message: 'User successfully created' });
         } catch (error: any) {
+            console.error('Registration Error:', error);
             res.status(400).json({ error: error.message });
         }
     };
@@ -50,8 +51,9 @@ export class AuthController {
             }
 
             res.status(200).json({ data: session, message: 'Login successful' });
-        } catch (error) {
-            res.status(500).json({ error: 'Authentication failed' });
+        } catch (error: any) {
+            console.error('Login Error:', error);
+            res.status(500).json({ error: error.message || 'Authentication failed' });
         }
     };
 }
