@@ -14,7 +14,14 @@ export class PrismaVehicleRepository implements IVehicleRepository {
         licensePlate: data.licensePlate,
         seatingCapacity: data.seatingCapacity,
         organizationId: data.organizationId,
-        status: data.status || 'IDLE'
+        status: data.status || 'IDLE',
+        purchasePrice: data.purchasePrice,
+        purchaseDate: data.purchaseDate,
+        residualValue: data.residualValue,
+        insuranceCost: data.insuranceCost,
+        loanAmount: data.loanAmount,
+        monthlyEmi: data.monthlyEmi,
+        expectedLifeYears: data.expectedLifeYears
       }
     });
   }
@@ -55,7 +62,10 @@ export class PrismaVehicleRepository implements IVehicleRepository {
             bookings: true
           },
           orderBy: { createdAt: 'desc' }
-        }
+        },
+        fuelLogs: { orderBy: { filledAt: 'desc' }, take: 20 },
+        maintenanceLogs: { orderBy: { servicedAt: 'desc' }, take: 20 },
+        expenses: { orderBy: { expenseDate: 'desc' }, take: 20 }
       }
     });
   }

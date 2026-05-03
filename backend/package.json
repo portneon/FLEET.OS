@@ -19,6 +19,7 @@
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "express": "^4.x",
+    "google-auth-library": "^10.6.2",
     "jsonwebtoken": "^9.0.3"
   },
   "devDependencies": {

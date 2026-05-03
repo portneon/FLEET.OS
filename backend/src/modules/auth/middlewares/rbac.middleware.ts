@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { Role } from '@prisma/client';
-import { prisma } from '../prisma';
+import { prisma } from '../../../prisma';
 
 export const requireAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {

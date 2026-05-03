@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { StaffController } from '../controllers/staff.controller';
 import { Routes } from '../../../shared/interfaces/routes.interface';
-import { requireAdmin } from '../../../middlewares/rbac.middleware';
-import { authenticate } from '../../../middlewares/auth.middleware';
+import { requireAdmin } from '../../auth/middlewares/rbac.middleware';
+import { authenticate } from '../../auth/middlewares/auth.middleware';
 
 export class StaffRoute implements Routes {
     public path = '/staff';

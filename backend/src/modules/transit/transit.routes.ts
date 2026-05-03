@@ -3,7 +3,7 @@
 import { Router } from 'express';
 import { TransitController } from './controllers/TransitController';
 import { Routes } from '../../shared/interfaces/routes.interface';
-import { authenticate } from '../../middlewares/auth.middleware';
+import { authenticate } from '../auth/middlewares/auth.middleware';
 
 export class TransitRoute implements Routes {
     public path = '/transit';

@@ -11,9 +11,10 @@ export interface CreateUserDTO {
 
 export class UserRepository {
 
-    public async findByEmail(email: string): Promise<User | null> {
+    public async findByEmail(email: string): Promise<any> {
         return await prisma.user.findUnique({
             where: { email },
+            include: { organization: true }
         });
     }
 

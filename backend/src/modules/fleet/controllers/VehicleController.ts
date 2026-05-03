@@ -1,4 +1,3 @@
-// src/modules/fleet/controllers/VehicleController.ts
 
 import { Request, Response } from 'express';
 import { IVehicleService } from '../interfaces/IVehicleService';
@@ -18,9 +17,13 @@ export class VehicleController {
 
     public registerVehicle = async (req: AuthRequest, res: Response): Promise<void> => {
         try {
-            const { vin, type, licensePlate, seatingCapacity } = req.body;
+            const {
+                vin, type, licensePlate, seatingCapacity,
+                purchasePrice, purchaseDate, residualValue,
+                insuranceCost, loanAmount, monthlyEmi, expectedLifeYears
+            } = req.body;
 
-            // In a real SaaS, organizationId comes from the JWT/Auth Middleware
+           
             const organizationId = req.user?.organizationId || req.headers['x-organization-id'] as string;
 
             if (!vin || !type || !licensePlate || !organizationId) {
@@ -33,7 +36,14 @@ export class VehicleController {
                 type: type as VehicleType,
                 licensePlate,
                 seatingCapacity: seatingCapacity ? parseInt(seatingCapacity) : null,
-                organizationId
+                organizationId,
+                purchasePrice: purchasePrice ? parseFloat(purchasePrice) : undefined,
+                purchaseDate: purchaseDate ? new Date(purchaseDate) : undefined,
+                residualValue: residualValue ? parseFloat(residualValue) : undefined,
+                insuranceCost: insuranceCost ? parseFloat(insuranceCost) : undefined,
+                loanAmount: loanAmount ? parseFloat(loanAmount) : undefined,
+                monthlyEmi: monthlyEmi ? parseFloat(monthlyEmi) : undefined,
+                expectedLifeYears: expectedLifeYears ? parseInt(expectedLifeYears) : undefined
             });
 
             res.status(201).json({ 

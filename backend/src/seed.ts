@@ -4,7 +4,7 @@ import { prisma } from './prisma';
 async function main() {
     let admin = await prisma.user.findUnique({ where: { email: 'admin@fleetos.com' } });
     if (!admin) {
-        // Create organization first
+        
         const org = await prisma.organization.create({
             data: {
                 name: 'FleetOS Demo Organization'

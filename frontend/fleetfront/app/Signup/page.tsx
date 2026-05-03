@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { authAPI } from '@/lib/api'
 import { Loader2 } from 'lucide-react'
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'
 
 function Page() {
     const router = useRouter()
@@ -158,7 +159,7 @@ function Page() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full mt-6 md:mt-8 bg-[#1A1A1A] text-[#F9F8F4] text-xs font-semibold uppercase tracking-[0.2em] py-5 transition-all duration-300 hover:bg-[#333333] hover:shadow-lg rounded-none disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-3"
+                        className="w-full mt-6 bg-[#1A1A1A] text-[#F9F8F4] text-xs font-semibold uppercase tracking-[0.2em] py-5 transition-all duration-300 hover:bg-[#333333] hover:shadow-lg rounded-none disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-3"
                     >
                         {loading ? (
                             <>
@@ -169,6 +170,44 @@ function Page() {
                             'Complete Registration'
                         )}
                     </button>
+
+                    <div className="relative flex items-center gap-4 my-2 mt-4">
+                        <div className="flex-1 h-[1px] bg-[#EBE6DD]"></div>
+                        <span className="text-[9px] uppercase tracking-widest text-[#8C877D] font-bold">OR</span>
+                        <div className="flex-1 h-[1px] bg-[#EBE6DD]"></div>
+                    </div>
+
+                    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || 'dummy-client-id.apps.googleusercontent.com'}>
+                        <div className="w-full flex justify-center">
+                        <GoogleLogin
+                            onSuccess={async (credentialResponse) => {
+                            setLoading(true);
+                            setError('');
+                            try {
+                                const res = await authAPI.googleLogin(credentialResponse.credential!);
+                                if (res.error) {
+                                setError(res.error);
+                                } else if (res.data) {
+                                localStorage.setItem('token', res.data.token);
+                                localStorage.setItem('orgId', res.data.organizationId);
+                                localStorage.setItem('user', JSON.stringify(res.data.user));
+                                setSuccess('Google Registration successful! Redirecting...');
+                                setTimeout(() => {
+                                    router.push('/dashboard')
+                                }, 2000)
+                                }
+                            } catch (err) {
+                                setError('Google Authentication failed.');
+                            } finally {
+                                setLoading(false);
+                            }
+                            }}
+                            onError={() => {
+                            setError('Google Authentication failed.');
+                            }}
+                        />
+                        </div>
+                    </GoogleOAuthProvider>
 
                     <div className="mt-8 text-center border-t border-[#EBE6DD] pt-8">
                         <p className="text-[10px] uppercase tracking-widest text-[#8C877D]">

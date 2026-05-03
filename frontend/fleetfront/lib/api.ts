@@ -1,9 +1,6 @@
-/**
- * Centralized API Client for FleetOS Frontend
- * Handles all communication with the backend API
- */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api';
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3005/api';
 
 export interface ApiResponse<T> {
   data?: T;
@@ -11,16 +8,13 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
-/**
- * Generic fetch wrapper with error handling
- */
 export async function fetchAPI<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
   try {
     const url = `${API_BASE_URL}${endpoint}`;
-    
+
     const organizationId = typeof window !== 'undefined'
       ? (localStorage.getItem('orgId') || '')
       : '';
@@ -35,12 +29,18 @@ export async function fetchAPI<T>(
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(organizationId ? { 'x-organization-id': organizationId } : {}),
-      ...(token          ? { 'Authorization': `Bearer ${token}` }   : {}),
-      ...(user?.email    ? { 'x-admin-email': user.email }          : {}),
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      ...(user?.email ? { 'x-admin-email': user.email } : {}),
       ...(options.headers as Record<string, string> || {}),
     };
 
-    const response = await fetch(url, { ...options, headers });
+    const fetchOptions: RequestInit = {
+      ...options,
+      headers,
+      cache: 'no-store', // Disable caching for all authenticated API calls
+    };
+
+    const response = await fetch(url, fetchOptions);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
@@ -110,7 +110,7 @@ export const staffAPI = {
 
 
 export const fleetAPI = {
- 
+
   getAll: async () => {
     return fetchAPI<any[]>('/fleet');
   },
@@ -123,6 +123,13 @@ export const fleetAPI = {
     type: 'BUS' | 'TRUCK' | 'VAN';
     licensePlate: string;
     seatingCapacity?: number;
+    purchasePrice?: number;
+    purchaseDate?: string;
+    residualValue?: number;
+    insuranceCost?: number;
+    loanAmount?: number;
+    monthlyEmi?: number;
+    expectedLifeYears?: number;
   }) => {
     return fetchAPI<any>('/fleet/register', {
       method: 'POST',
@@ -135,13 +142,9 @@ export const fleetAPI = {
   },
 };
 
-/**
- * User/Auth API Methods
- */
+
 export const authAPI = {
-  /**
-   * Register new user
-   */
+
   register: async (userData: {
     email: string;
     name: string;
@@ -150,6 +153,16 @@ export const authAPI = {
     return fetchAPI<any>('/auth/register', {
       method: 'POST',
       body: JSON.stringify(userData),
+    });
+  },
+
+  /**
+   * Google Login
+   */
+  googleLogin: async (idToken: string) => {
+    return fetchAPI<any>('/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ idToken }),
     });
   },
 
@@ -169,34 +182,157 @@ export const authAPI = {
   getUsers: async () => {
     return fetchAPI<any[]>('/auth/users');
   },
-};
 
-/**
- * Finance API Methods
- */
-export const financeAPI = {
-  getSummary: async () => fetchAPI<any>('/finance/summary'),
+  me: async () => {
+    return fetchAPI<any>('/auth/me');
+  },
 
-  addTransaction: async (data: {
-    amount: number;
-    type: string;
-    category: string;
-    description?: string;
-  }) =>
-    fetchAPI<any>('/finance/record', {
-      method: 'POST',
+  updateProfile: async (data: { businessName?: string; newPassword?: string }) => {
+    return fetchAPI<any>('/auth/profile', {
+      method: 'PUT',
       body: JSON.stringify(data),
-    }),
+    });
+  },
 };
 
-/**
- * Transit API Methods (Routes &amp; Stops)
- */
+
+export const financeAPI = {
+  // Transaction Audit Trail
+  getSummary: async (filters?: { category?: string; type?: string }) => {
+    let url = '/finance/summary';
+    const params = new URLSearchParams();
+    if (filters?.category) params.append('category', filters.category);
+    if (filters?.type) params.append('type', filters.type);
+    const qs = params.toString();
+    if (qs) url += `?${qs}`;
+    return fetchAPI<any>(url);
+  },
+  addTransaction: async (data: { amount: number; type: string; category: string; description?: string }) =>
+    fetchAPI<any>('/finance/record', { method: 'POST', body: JSON.stringify(data) }),
+  updateTransaction: async (id: string, data: { amount?: number; category?: string; description?: string }) =>
+    fetchAPI<any>(`/finance/transactions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteTransaction: async (id: string) =>
+    fetchAPI<any>(`/finance/transactions/${id}`, { method: 'DELETE' }),
+
+  // Dashboard
+  getDashboard: async () => fetchAPI<any>('/finance/dashboard'),
+
+  // Customers
+  getCustomers: async () => fetchAPI<any[]>('/finance/customers'),
+  getCustomerById: async (id: string) => fetchAPI<any>(`/finance/customers/${id}`),
+  createCustomer: async (data: { name: string; email?: string; phone?: string; customerType: string }) =>
+    fetchAPI<any>('/finance/customers', { method: 'POST', body: JSON.stringify(data) }),
+  updateCustomer: async (id: string, data: any) =>
+    fetchAPI<any>(`/finance/customers/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteCustomer: async (id: string) =>
+    fetchAPI<any>(`/finance/customers/${id}`, { method: 'DELETE' }),
+
+  // Invoices
+  getInvoices: async (filters?: { status?: string; customerId?: string }) => {
+    let url = '/finance/invoices';
+    const params = new URLSearchParams();
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.customerId) params.append('customerId', filters.customerId);
+    const qs = params.toString();
+    if (qs) url += `?${qs}`;
+    return fetchAPI<any[]>(url);
+  },
+  getInvoiceById: async (id: string) => fetchAPI<any>(`/finance/invoices/${id}`),
+  createInvoice: async (data: { customerId: string; tripId?: string; subtotal: number; tax: number; discount?: number; total?: number; dueDate: string }) =>
+    fetchAPI<any>('/finance/invoices', { method: 'POST', body: JSON.stringify(data) }),
+  updateInvoice: async (id: string, data: any) =>
+    fetchAPI<any>(`/finance/invoices/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteInvoice: async (id: string) =>
+    fetchAPI<any>(`/finance/invoices/${id}`, { method: 'DELETE' }),
+
+  // Payments
+  getPayments: async () => fetchAPI<any[]>('/finance/payments'),
+  recordPayment: async (data: { invoiceId: string; amount: number; method: string; status: string }) =>
+    fetchAPI<any>('/finance/payments', { method: 'POST', body: JSON.stringify(data) }),
+
+  // Expenses
+  getExpenses: async (filters?: { category?: string; vehicleId?: string; driverId?: string; tripId?: string }) => {
+    let url = '/finance/expenses';
+    const params = new URLSearchParams();
+    if (filters?.category) params.append('category', filters.category);
+    if (filters?.vehicleId) params.append('vehicleId', filters.vehicleId);
+    if (filters?.driverId) params.append('driverId', filters.driverId);
+    if (filters?.tripId) params.append('tripId', filters.tripId);
+    const qs = params.toString();
+    if (qs) url += `?${qs}`;
+    return fetchAPI<any[]>(url);
+  },
+  getExpenseById: async (id: string) => fetchAPI<any>(`/finance/expenses/${id}`),
+  createExpense: async (data: { vehicleId?: string; driverId?: string; tripId?: string; category: string; amount: number; vendor?: string; notes?: string; expenseDate?: string }) =>
+    fetchAPI<any>('/finance/expenses', { method: 'POST', body: JSON.stringify(data) }),
+  updateExpense: async (id: string, data: any) =>
+    fetchAPI<any>(`/finance/expenses/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteExpense: async (id: string) =>
+    fetchAPI<any>(`/finance/expenses/${id}`, { method: 'DELETE' }),
+
+  // Fuel Logs
+  getFuelLogs: async (filters?: { vehicleId?: string; tripId?: string }) => {
+    let url = '/finance/fuel-logs';
+    const params = new URLSearchParams();
+    if (filters?.vehicleId) params.append('vehicleId', filters.vehicleId);
+    if (filters?.tripId) params.append('tripId', filters.tripId);
+    const qs = params.toString();
+    if (qs) url += `?${qs}`;
+    return fetchAPI<any[]>(url);
+  },
+  getFuelLogById: async (id: string) => fetchAPI<any>(`/finance/fuel-logs/${id}`),
+  createFuelLog: async (data: { vehicleId: string; tripId?: string; liters: number; cost: number; odometer: number }) =>
+    fetchAPI<any>('/finance/fuel-logs', { method: 'POST', body: JSON.stringify(data) }),
+
+  // Maintenance Logs
+  getMaintenanceLogs: async (vehicleId: string) =>
+    fetchAPI<any[]>(`/finance/maintenance?vehicleId=${vehicleId}`),
+  getMaintenanceLogById: async (id: string) => fetchAPI<any>(`/finance/maintenance/${id}`),
+  createMaintenanceLog: async (data: { vehicleId: string; maintenanceType: string; cost: number; vendor?: string; notes?: string; nextDue?: string }) =>
+    fetchAPI<any>('/finance/maintenance', { method: 'POST', body: JSON.stringify(data) }),
+
+  // Payroll
+  getPayrolls: async (filters?: { driverId?: string; month?: string }) => {
+    let url = '/finance/payroll';
+    const params = new URLSearchParams();
+    if (filters?.driverId) params.append('driverId', filters.driverId);
+    if (filters?.month) params.append('month', filters.month);
+    const qs = params.toString();
+    if (qs) url += `?${qs}`;
+    return fetchAPI<any[]>(url);
+  },
+  getPayrollById: async (id: string) => fetchAPI<any>(`/finance/payroll/${id}`),
+  createPayroll: async (data: { driverId: string; month: string; baseSalary: number; bonus?: number; deductions?: number; netPay?: number }) =>
+    fetchAPI<any>('/finance/payroll', { method: 'POST', body: JSON.stringify(data) }),
+  updatePayroll: async (id: string, data: any) =>
+    fetchAPI<any>(`/finance/payroll/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  // Receivables
+  getReceivables: async (filters?: { status?: string }) => {
+    let url = '/finance/receivables';
+    if (filters?.status) url += `?status=${filters.status}`;
+    return fetchAPI<any[]>(url);
+  },
+  updateReceivable: async (id: string, data: any) =>
+    fetchAPI<any>(`/finance/receivables/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  // Payables
+  getPayables: async (filters?: { status?: string }) => {
+    let url = '/finance/payables';
+    if (filters?.status) url += `?status=${filters.status}`;
+    return fetchAPI<any[]>(url);
+  },
+  createPayable: async (data: { vendor: string; amount: number; dueDate: string; status?: string }) =>
+    fetchAPI<any>('/finance/payables', { method: 'POST', body: JSON.stringify(data) }),
+  updatePayable: async (id: string, data: any) =>
+    fetchAPI<any>(`/finance/payables/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+};
+
 export const transitAPI = {
-  // Routes
+
   getRoutes: async () => fetchAPI<any[]>('/transit/routes'),
 
-  getRouteById: async (routeId: string) => 
+  getRouteById: async (routeId: string) =>
     fetchAPI<any>(`/transit/routes/${routeId}`),
 
   createRoute: async (name: string) =>
@@ -208,7 +344,7 @@ export const transitAPI = {
   deleteRoute: async (routeId: string) =>
     fetchAPI<any>(`/transit/routes/${routeId}`, { method: 'DELETE' }),
 
-  // Stops
+
   getStops: async () => fetchAPI<any[]>('/transit/stops'),
 
   createStop: async (data: { name: string; latitude: number; longitude: number }) =>
@@ -217,20 +353,18 @@ export const transitAPI = {
       body: JSON.stringify(data),
     }),
 
-  // Link stop to route
+
   addStopToRoute: async (routeId: string, stopId: string, sequence: number) =>
     fetchAPI<any>(`/transit/routes/${routeId}/stops`, {
       method: 'POST',
       body: JSON.stringify({ stopId, sequence }),
     }),
 
-  // Remove stop from route
   removeStopFromRoute: async (routeId: string, stopId: string) =>
     fetchAPI<any>(`/transit/routes/${routeId}/stops/${stopId}`, {
       method: 'DELETE',
     }),
 
-  // Plan full route A to B with waypoints
   planRoute: async (data: {
     name: string;
     stops: { name: string; latitude: number; longitude: number }[];
@@ -241,12 +375,10 @@ export const transitAPI = {
     }),
 };
 
-/**
- * Trip / Dispatch API Methods
- */
+
 export const tripAPI = {
   getAll: async () => fetchAPI<any[]>('/trips'),
-  
+
   getById: async (tripId: string) => fetchAPI<any>(`/trips/${tripId}`),
 
   getActive: async () => fetchAPI<any[]>('/trips/active'),
@@ -278,9 +410,7 @@ export const tripAPI = {
     }),
 };
 
-/**
- * Analytics API Methods
- */
+
 export const analyticsAPI = {
   getReport: async (period: string = 'weekly', customStart?: string, customEnd?: string) => {
     let url = `/analytics/report?period=${period}`;

@@ -8,14 +8,13 @@ export class AnalyticsService implements IAnalyticsService {
   async getReport(organizationId: string, period: AnalyticsPeriod, customStart?: string, customEnd?: string): Promise<AnalyticsReport> {
     const { startDate, endDate } = this.getDateRange(period, customStart, customEnd);
 
-    // Fetch data
+
     const [transactions, trips, bookings] = await Promise.all([
        this.analyticsRepo.getTransactions(organizationId, startDate || undefined, endDate || undefined),
        this.analyticsRepo.getTrips(organizationId, startDate || undefined, endDate || undefined),
        this.analyticsRepo.getBookings(organizationId, startDate || undefined, endDate || undefined)
     ]);
 
-    // Aggregate summary
     let totalRevenue = 0;
     let totalExpenses = 0;
     
@@ -28,7 +27,7 @@ export class AnalyticsService implements IAnalyticsService {
     const totalTrips = trips.length;
     const totalPassengers = bookings.length;
 
-    // Group for chart data
+
     const chartData = this.groupData(period, startDate, endDate, transactions, trips, bookings);
 
     return {
@@ -50,16 +49,15 @@ export class AnalyticsService implements IAnalyticsService {
     const end = new Date();
     let start = new Date();
     
-    // reset end of day for 'end'
     end.setHours(23, 59, 59, 999);
     start.setHours(0, 0, 0, 0);
 
     switch (period) {
       case 'daily':
-        // Today
+
         break;
       case 'weekly':
-        start.setDate(end.getDate() - 6); // Last 7 days
+        start.setDate(end.getDate() - 6); // Last 7 
         break;
       case 'monthly':
         start.setDate(end.getDate() - 29); // Last 30 days
@@ -144,7 +142,6 @@ export class AnalyticsService implements IAnalyticsService {
        buckets[key].passengers += 1;
     });
 
-    // Sort buckets by label lexicographically (works for YYYY-MM-DD, YYYY-MM, HH:00)
     return Object.values(buckets).sort((a,b) => a.label.localeCompare(b.label));
   }
 

@@ -9,10 +9,110 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  DISPATCHER
+  DRIVER
+  FINANCE
+  ROUTE_PLANNER
+  PASSENGER
+}
+
+enum DriverStatus {
+  AVAILABLE
+  ON_TRIP
+  OFF_DUTY
+}
+
+enum VehicleType {
+  BUS
+  TRUCK
+  VAN
+}
+
+enum TripStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+// ── New finance enums ────────────────────────
+
+enum CustomerType {
+  INDIVIDUAL
+  BUSINESS
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  BANK_TRANSFER
+  UPI
+}
+
+enum PaymentStatus {
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum ExpenseCategory {
+  FUEL
+  MAINTENANCE
+  SALARY
+  INSURANCE
+  TAX
+  TOLL
+  RENT
+  PARKING
+  LOAN_PAYMENT
+  OTHER
+}
+
+enum ReceivableStatus {
+  PENDING
+  PAID
+  OVERDUE
+}
+
+enum PayableStatus {
+  PENDING
+  PAID
+  OVERDUE
+}
+
+// ─────────────────────────────────────────────
+// EXISTING MODELS (updated with finance relations)
+// ─────────────────────────────────────────────
+
 model Organization {
-  id           String        @id @default(uuid())
-  name         String
-  createdAt    DateTime      @default(now())
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+
   users        User[]
   vehicles     Vehicle[]
   transactions Transaction[]
@@ -21,6 +121,13 @@ model Organization {
   stops        Stop[]
   trips        Trip[]
   bookings     Booking[]
+
+  // Finance relations
+  customers   Customer[]
+  invoices    Invoice[]
+  expenses    Expense[]
+  receivables Receivable[]
+  payables    Payable[]
 }
 
 model User {
@@ -35,17 +142,8 @@ model User {
   driverProfile DriverProfile?
   bookings      Booking[]
 
-  createdAt     DateTime       @default(now())
-  isActive      Boolean        @default(true)
-}
-
-enum Role {
-  ADMIN
-  DISPATCHER
-  DRIVER
-  FINANCE
-  ROUTE_PLANNER
-  PASSENGER
+  createdAt DateTime @default(now())
+  isActive  Boolean  @default(true)
 }
 
 model DriverProfile {
@@ -61,18 +159,10 @@ model DriverProfile {
   wallets Wallet[]
   loans   Loan[]
   trips   Trip[]
-}
 
-enum DriverStatus {
-  AVAILABLE
-  ON_TRIP
-  OFF_DUTY
-}
-
-enum VehicleType {
-  BUS
-  TRUCK
-  VAN
+  // Finance relations
+  payrolls Payroll[]
+  expenses Expense[]
 }
 
 model Vehicle {
@@ -81,7 +171,7 @@ model Vehicle {
   type            VehicleType
   licensePlate    String      @unique
   seatingCapacity Int? // Required if type is BUS
-  status          String      @default("IDLE") //
+  status          String      @default("IDLE")
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
@@ -89,8 +179,20 @@ model Vehicle {
   fleetId String?
   fleet   Fleet?  @relation(fields: [fleetId], references: [id])
 
-  trips     Trip[]
-  telemetry Telemetry[]
+  // Financial metadata
+  purchasePrice     Float?
+  purchaseDate      DateTime?
+  residualValue     Float?
+  insuranceCost     Float?
+  loanAmount        Float?
+  monthlyEmi        Float?
+  expectedLifeYears Int?
+
+  trips           Trip[]
+  telemetry       Telemetry[]
+  fuelLogs        FuelLog[]
+  maintenanceLogs MaintenanceLog[]
+  expenses        Expense[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -137,19 +239,6 @@ model RouteStop {
   @@unique([routeId, sequence])
 }
 
-enum TripStatus {
-  SCHEDULED
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
-}
-
-enum BookingStatus {
-  CONFIRMED
-  CANCELLED
-  COMPLETED
-}
-
 model Booking {
   id             String        @id @default(uuid())
   tripId         String
@@ -177,8 +266,15 @@ model Trip {
   actualEnd      DateTime?
   organizationId String
   organization   Organization  @relation(fields: [organizationId], references: [id])
-  bookings       Booking[]
-  createdAt      DateTime      @default(now())
+
+  bookings Booking[]
+
+  // Finance relations
+  invoices Invoice[]
+  expenses Expense[]
+  fuelLogs FuelLog[]
+
+  createdAt DateTime @default(now())
 }
 
 model Telemetry {
@@ -208,11 +304,7 @@ model Loan {
   createdAt       DateTime      @default(now())
 }
 
-enum TransactionType {
-  INCOME
-  EXPENSE
-}
-
+// Kept as ledger/audit trail — do NOT delete
 model Transaction {
   id          String          @id @default(uuid())
   amount      Float
@@ -225,4 +317,146 @@ model Transaction {
   organization   Organization @relation(fields: [organizationId], references: [id])
 
   createdAt DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────
+// NEW FINANCE MODELS
+// ─────────────────────────────────────────────
+
+model Customer {
+  id             String       @id @default(uuid())
+  organizationId String
+  name           String
+  email          String?
+  phone          String?
+  customerType   CustomerType
+  createdAt      DateTime     @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  invoices     Invoice[]
+}
+
+model Invoice {
+  id             String  @id @default(uuid())
+  organizationId String
+  customerId     String
+  tripId         String?
+
+  subtotal Float
+  tax      Float
+  discount Float @default(0)
+  total    Float
+
+  status InvoiceStatus @default(PENDING)
+
+  issuedAt DateTime  @default(now())
+  dueDate  DateTime
+  paidAt   DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  customer     Customer     @relation(fields: [customerId], references: [id])
+  trip         Trip?        @relation(fields: [tripId], references: [id])
+
+  payments   Payment[]
+  receivable Receivable?
+}
+
+model Payment {
+  id        String        @id @default(uuid())
+  invoiceId String
+  amount    Float
+  method    PaymentMethod
+  status    PaymentStatus
+  paidAt    DateTime      @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+}
+
+model Expense {
+  id             String @id @default(uuid())
+  organizationId String
+
+  vehicleId String?
+  driverId  String?
+  tripId    String?
+
+  category ExpenseCategory
+  amount   Float
+  vendor   String?
+  notes    String?
+
+  expenseDate DateTime @default(now())
+
+  organization Organization   @relation(fields: [organizationId], references: [id])
+  vehicle      Vehicle?       @relation(fields: [vehicleId], references: [id])
+  driver       DriverProfile? @relation(fields: [driverId], references: [id])
+  trip         Trip?          @relation(fields: [tripId], references: [id])
+}
+
+model FuelLog {
+  id        String  @id @default(uuid())
+  vehicleId String
+  tripId    String?
+
+  liters   Float
+  cost     Float
+  odometer Float
+  filledAt DateTime @default(now())
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+  trip    Trip?   @relation(fields: [tripId], references: [id])
+}
+
+model MaintenanceLog {
+  id              String  @id @default(uuid())
+  vehicleId       String
+  maintenanceType String
+  cost            Float
+  vendor          String?
+  notes           String?
+
+  servicedAt DateTime  @default(now())
+  nextDue    DateTime?
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id])
+}
+
+model Payroll {
+  id       String   @id @default(uuid())
+  driverId String
+  month    DateTime
+
+  baseSalary Float
+  bonus      Float @default(0)
+  deductions Float @default(0)
+  netPay     Float
+
+  paidAt DateTime?
+
+  driver DriverProfile @relation(fields: [driverId], references: [id])
+}
+
+model Receivable {
+  id             String @id @default(uuid())
+  organizationId String
+  invoiceId      String @unique
+
+  amountDue Float
+  dueDate   DateTime
+  status    ReceivableStatus
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  invoice      Invoice      @relation(fields: [invoiceId], references: [id])
+}
+
+model Payable {
+  id             String @id @default(uuid())
+  organizationId String
+
+  vendor  String
+  amount  Float
+  dueDate DateTime
+  status  PayableStatus
+
+  organization Organization @relation(fields: [organizationId], references: [id])
 }

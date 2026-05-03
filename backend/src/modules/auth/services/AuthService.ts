@@ -4,10 +4,12 @@ import { prisma } from '../../../prisma';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import { IAuthService } from '../interfaces/IAuthService';
-
+import { OAuth2Client } from 'google-auth-library';
+import * as crypto from 'crypto';
 export class AuthService implements IAuthService {
 
     private readonly SALT_ROUNDS = 10;
+    private googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
     constructor(private userRepo: UserRepository) {}
 
@@ -89,8 +91,81 @@ export class AuthService implements IAuthService {
         };
     }
 
+    public async verifyGoogleTokenAndLogin(idToken: string): Promise<{ token: string; user: User; organizationId: string }> {
+        const ticket = await this.googleClient.verifyIdToken({
+            idToken,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
+        if (!payload) throw new Error("Invalid Google token payload");
+
+        const email = payload.email;
+        const name = payload.name;
+        if (!email) throw new Error("No email found in Google token");
+
+        let user = await this.userRepo.findByEmail(email);
+
+        if (!user) {
+            // Auto Register logic
+            user = await this.register({
+                email,
+                password: crypto.randomUUID(),
+                role: Role.ADMIN,
+                name: name || email.split('@')[0],
+                businessName: `${name || 'User'}'s Fleet`
+            });
+        }
+
+        if (!user.isActive) {
+            throw new Error("This account has been disabled by an administrator.");
+        }
+
+        const token = jwt.sign(
+            {
+                userId: user.id,
+                email: user.email,
+                role: user.role,
+                organizationId: user.organizationId
+            },
+            process.env.JWT_SECRET || 'default-secret',
+            { expiresIn: '24h' }
+        );
+
+        return {
+            token,
+            user,
+            organizationId: user.organizationId
+        };
+    }
+
     public async findUserByEmail(email: string): Promise<User | null> {
         return await this.userRepo.findByEmail(email);
+    }
+
+    public async updateProfile(userId: string, newPassword?: string, businessName?: string) {
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) throw new Error("User not found");
+
+        const dataToUpdate: any = {};
+        if (newPassword) {
+            dataToUpdate.password = await bcrypt.hash(newPassword, this.SALT_ROUNDS);
+        }
+
+        if (Object.keys(dataToUpdate).length > 0) {
+            await prisma.user.update({
+                where: { id: userId },
+                data: dataToUpdate
+            });
+        }
+
+        if (businessName && user.organizationId) {
+            await prisma.organization.update({
+                where: { id: user.organizationId },
+                data: { name: businessName }
+            });
+        }
+
+        return await this.userRepo.findByEmail(user.email);
     }
 
     public async findAllUsersInOrg(orgId: string): Promise<User[]> {

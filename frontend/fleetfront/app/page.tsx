@@ -10,7 +10,7 @@ const platformModules = [
     num: "I",
     category: "Asset Ledger",
     title: "The Immutable Fleet Core.",
-    themeText: "text-[#0A1128]", // Oxford Navy
+    themeText: "text-[#0A1128]", 
     themeBorder: "border-[#0A1128]/20",
     intro: "The Asset Ledger is the definitive source of truth for your physical inventory. Unlike a simple list, the Ledger treats every vehicle as a high-value asset with a unique lifecycle.",
     features: [
@@ -346,10 +346,6 @@ export default function Home() {
             })}
           </main>
         )}
-
-        {/* =========================================
-            7. EDITORIAL BACK COVER (Footer)
-            ========================================= */}
         <footer className="px-8 py-32 bg-[#111317] text-[#FDFBF7] flex flex-col items-center justify-center text-center relative overflow-hidden">
           <p className="text-[9px] uppercase tracking-[0.4em] font-bold text-[#888888] mb-12 z-10">
             End of Document

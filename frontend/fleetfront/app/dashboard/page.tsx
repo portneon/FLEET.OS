@@ -9,11 +9,12 @@ import { Truck, Users, Activity, Banknote, Bell, Loader2, ArrowRight, AlertCircl
 import { staffAPI, fleetAPI, financeAPI, tripAPI } from '@/lib/api';
 
 import { useRouter } from 'next/navigation';
+import { TopBar } from '@/Components/ui/top-bar';
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [staff, setStaff] = useState<any[]>([]);
-  const [alerts, setAlerts] = useState<any[]>([]); // Dynamic alerts state
+  const [alerts, setAlerts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     revenue: 0,
@@ -28,16 +29,14 @@ export default function AdminDashboard() {
         const [staffRes, fleetRes, financeRes, tripsRes] = await Promise.all([
           staffAPI.getAll(),
           fleetAPI.getAll(),
-          financeAPI.getSummary(),
+          financeAPI.getDashboard(),
           tripAPI.getAll()
         ]);
 
         if (!staffRes.error && staffRes.data) {
-          // Reverses the array so the newest users appear at the top of the table
-          setStaff(staffRes.data.reverse());
-
-          const driverCount = staffRes.data.filter((m: any) => m.role === 'DRIVER').length;
-          setStats(prev => ({ ...prev, driversOnDuty: driverCount }));
+          setStaff([...(staffRes.data || [])].reverse());
+          // Count all registered staff (not just drivers)
+          setStats(prev => ({ ...prev, driversOnDuty: (staffRes.data || []).length }));
         }
 
         if (!fleetRes.error && fleetRes.data) {
@@ -45,13 +44,14 @@ export default function AdminDashboard() {
         }
 
         if (!financeRes.error && financeRes.data) {
-          setStats(prev => ({ ...prev, revenue: financeRes.data.revenue || 0 }));
+          // Use totalPaid from real invoice data as the revenue figure
+          setStats(prev => ({ ...prev, revenue: financeRes.data.totalPaid || 0 }));
         }
 
         if (!tripsRes.error && tripsRes.data) {
           const cancelledTrips = tripsRes.data.filter((t: any) => t.status === 'CANCELLED');
           setStats(prev => ({ ...prev, alertCount: cancelledTrips.length }));
-          
+
           // Generate dynamic notices from cancelled trips
           const notices = cancelledTrips.slice(0, 3).map((t: any) => ({
             title: "Trip Interruption",
@@ -85,33 +85,20 @@ export default function AdminDashboard() {
     <div className="flex-1 flex flex-col bg-[#F9F8F4] text-[#1A1A1A] font-sans h-full min-h-screen">
 
       {/* TOP BAR */}
-      <header className="flex items-center justify-between p-6 border-b border-[#DCD7CB] bg-[#F9F8F4]/80 backdrop-blur-sm sticky top-0 z-10">
-        <h2 className="text-lg font-light tracking-wide">Operations Overview</h2>
-        <div className="flex items-center gap-6">
-          <div className="relative cursor-pointer group">
-            <Bell className="w-5 h-5 text-[#8C877D] group-hover:text-[#1A1A1A] transition-colors" strokeWidth={1} />
-            {stats.alertCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-[#1A1A1A] rounded-full"></span>
-            )}
-          </div>
-          <div className="w-8 h-8 bg-[#1A1A1A] text-[#F9F8F4] flex items-center justify-center text-xs font-serif italic border border-[#1A1A1A]">
-            A
-          </div>
-        </div>
-      </header>
+      <TopBar title="Operations Overview" alertCount={stats.alertCount} />
 
       <div className="p-6 md:p-12 lg:p-16 flex-1 overflow-auto">
 
         {/* KPI CARDS (Moved to the top) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
           {[
-            { label: "Revenue", value: `₹${stats.revenue.toLocaleString()}`, icon: Banknote, path: '/dashboard/finance' },
+            { label: "Paid Revenue", value: `₹${stats.revenue.toLocaleString()}`, icon: Banknote, path: '/dashboard/finance' },
             { label: "Active Fleet", value: stats.activeFleet, icon: Truck, path: '/dashboard/fleet' },
-            { label: "Staff/Drivers", value: stats.driversOnDuty, icon: Users, path: '/dashboard/staff' },
-            { label: "Alerts", value: stats.alertCount, icon: Activity, path: '/dashboard/transit' },
+            { label: "Total Staff", value: stats.driversOnDuty, icon: Users, path: '/dashboard/staff' },
+            { label: "Trip Alerts", value: stats.alertCount, icon: Activity, path: '/dashboard/transit' },
           ].map((stat, i) => (
-            <Card 
-              key={i} 
+            <Card
+              key={i}
               onClick={() => router.push(stat.path)}
               className="border border-[#DCD7CB] shadow-none bg-[#FDFCF9] rounded-none border-l-4 border-l-[#1A1A1A] hover:bg-[#FFFFFF] transition-colors cursor-pointer"
             >
@@ -122,7 +109,7 @@ export default function AdminDashboard() {
                 <stat.icon className="w-4 h-4 text-[#1A1A1A]" strokeWidth={1} />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-light font-['Playfair_Display',_serif] text-[#1A1A1A]">
+                <div className="text-3xl font-light font-['Playfair_Display',serif] text-[#1A1A1A]">
                   {stat.value}
                 </div>
               </CardContent>
@@ -130,10 +117,10 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        {/* MAIN CONTENT GRID */}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-          {/* LEFT COLUMN: Dynamic Data Table */}
+
           <Card className="lg:col-span-2 border border-[#DCD7CB] shadow-none bg-[#FDFCF9] rounded-none flex flex-col h-full">
             <CardHeader className="border-b border-[#DCD7CB] pb-6 flex flex-row items-end justify-between">
               <div>
@@ -142,9 +129,9 @@ export default function AdminDashboard() {
                   Latest operator and driver sign-ups in the system.
                 </p>
               </div>
-              <Button 
+              <Button
                 onClick={() => router.push('/dashboard/staff')}
-                variant="ghost" 
+                variant="ghost"
                 className="text-[9px] uppercase tracking-widest text-[#1A1A1A] hover:bg-transparent hover:underline rounded-none p-0"
               >
                 View Ledger <ArrowRight className="ml-2 w-3 h-3" strokeWidth={1.5} />

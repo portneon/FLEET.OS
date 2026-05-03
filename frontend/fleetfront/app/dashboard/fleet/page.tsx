@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/Components/ui/badge";
 import { Truck, Loader2, Plus, Bell, X } from "lucide-react";
 import { fleetAPI } from '@/lib/api';
+import { TopBar } from '@/Components/ui/top-bar';
 
 export default function FleetDashboard() {
   const [vehicles, setVehicles] = useState<any[]>([]);
@@ -106,15 +107,7 @@ export default function FleetDashboard() {
     <div className="flex-1 flex flex-col bg-[#F9F8F4] text-[#1A1A1A] font-sans h-full min-h-screen">
 
       {/* TOP BAR */}
-      <header className="flex items-center justify-between p-6 border-b border-[#DCD7CB] bg-[#F9F8F4]/80 backdrop-blur-sm sticky top-0 z-10">
-        <h2 className="text-lg font-light tracking-wide">Fleet Operations</h2>
-        <div className="flex items-center gap-6">
-          <Bell className="w-5 h-5 text-[#8C877D] hover:text-[#1A1A1A] cursor-pointer transition-colors" strokeWidth={1} />
-          <div className="w-8 h-8 bg-[#1A1A1A] text-[#F9F8F4] flex items-center justify-center text-xs font-serif italic border border-[#1A1A1A]">
-            A
-          </div>
-        </div>
-      </header>
+      <TopBar title="Fleet Operations" />
 
       <div className="p-6 md:p-12 lg:p-16 flex-1 overflow-auto">
 

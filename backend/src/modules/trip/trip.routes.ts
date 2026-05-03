@@ -3,7 +3,7 @@
 import { Router } from 'express';
 import { TripController } from './controllers/TripController';
 import { Routes } from '../../shared/interfaces/routes.interface';
-import { authenticate } from '../../middlewares/auth.middleware';
+import { authenticate } from '../auth/middlewares/auth.middleware';
 
 export class TripRoute implements Routes {
     public path = '/trips';

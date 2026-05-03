@@ -8,6 +8,15 @@ export interface CreateVehicleDTO {
   seatingCapacity?: number | null;
   organizationId: string;
   status?: string;
+
+  // Financial metadata
+  purchasePrice?: number;
+  purchaseDate?: Date;
+  residualValue?: number;
+  insuranceCost?: number;
+  loanAmount?: number;
+  monthlyEmi?: number;
+  expectedLifeYears?: number;
 }
 
 export interface IVehicleRepository {

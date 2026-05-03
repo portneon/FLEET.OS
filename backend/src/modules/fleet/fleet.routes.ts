@@ -1,9 +1,8 @@
-// src/modules/fleet/fleet.routes.ts
 
 import { Router } from 'express';
 import { VehicleController } from './controllers/VehicleController';
 import { Routes } from '../../shared/interfaces/routes.interface';
-import { authenticate } from '../../middlewares/auth.middleware';
+import { authenticate } from '../auth/middlewares/auth.middleware';
 
 export class FleetRoute implements Routes {
     public path = '/fleet';
@@ -14,13 +13,13 @@ export class FleetRoute implements Routes {
     }
 
     private initializeRoutes() {
-        // Register new vehicle
+
         this.router.post('/register', authenticate, this.vehicleController.registerVehicle);
 
-        // Get all vehicles in fleet
+    
         this.router.get('/', authenticate, this.vehicleController.getFleet);
 
-        // Get vehicle history
+
         this.router.get('/:id/history', authenticate, this.vehicleController.getVehicleHistory);
     }
 }
