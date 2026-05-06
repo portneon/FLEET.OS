@@ -5,17 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
 import { Button } from "@/Components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/Components/ui/table";
 import { Badge } from "@/Components/ui/badge";
-import { Truck, Loader2, Plus, Bell, X } from "lucide-react";
+import { Truck, Loader2, Plus, X } from "lucide-react";
 import { fleetAPI } from '@/lib/api';
 import { TopBar } from '@/Components/ui/top-bar';
+import { useRouter } from 'next/navigation';
 
 export default function FleetDashboard() {
+  const router = useRouter();
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRegistering, setIsRegistering] = useState(false);
-  const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
-  const [vehicleHistory, setVehicleHistory] = useState<any>(null);
-  const [historyLoading, setHistoryLoading] = useState(false);
   const [formData, setFormData] = useState({
     vin: '',
     type: 'TRUCK',
@@ -29,7 +28,6 @@ export default function FleetDashboard() {
     try {
       const fleetRes = await fleetAPI.getAll();
       if (!fleetRes.error && fleetRes.data) {
-        // Reverse array to show newest vehicles at the top
         setVehicles(fleetRes.data.reverse());
       } else {
         console.error(fleetRes.error);
@@ -68,27 +66,6 @@ export default function FleetDashboard() {
     }
   };
 
-  const openVehicleHistory = async (vehicle: any) => {
-    setSelectedVehicle(vehicle);
-    setHistoryLoading(true);
-    try {
-      const res = await fleetAPI.getHistory(vehicle.id);
-      if (!res.error) {
-        setVehicleHistory(res.data);
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setHistoryLoading(false);
-    }
-  };
-
-  const closeVehicleHistory = () => {
-    setSelectedVehicle(null);
-    setVehicleHistory(null);
-  };
-
-  // Shared Input Styles for the Luxury Form
   const inputStyle = "w-full bg-transparent border-b border-[#DCD7CB] py-4 text-[#1A1A1A] font-light text-base focus:outline-none focus:border-[#1A1A1A] transition-colors rounded-none placeholder:text-[#C4BFAF]";
   const labelStyle = "text-[10px] uppercase tracking-[0.2em] font-semibold text-[#8C877D] mb-1 block";
 
@@ -105,13 +82,9 @@ export default function FleetDashboard() {
 
   return (
     <div className="flex-1 flex flex-col bg-[#F9F8F4] text-[#1A1A1A] font-sans h-full min-h-screen">
-
-      {/* TOP BAR */}
       <TopBar title="Fleet Operations" />
 
       <div className="p-6 md:p-12 lg:p-16 flex-1 overflow-auto">
-
-        {/* HEADER AREA */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6">
           <div>
             <h3 className="text-[10px] uppercase tracking-[0.2em] font-semibold text-[#8C877D] mb-2">
@@ -121,7 +94,7 @@ export default function FleetDashboard() {
               Vehicle Fleet.
             </h2>
           </div>
-          {!isRegistering && !selectedVehicle && (
+          {!isRegistering && (
             <Button
               onClick={() => setIsRegistering(true)}
               className="bg-[#1A1A1A] text-[#F9F8F4] hover:bg-[#333333] transition-colors rounded-none text-[10px] tracking-[0.2em] uppercase px-8 py-6 group flex items-center gap-3"
@@ -132,109 +105,7 @@ export default function FleetDashboard() {
           )}
         </div>
         
-        {/* CONDITIONAL RENDERING */}
-        {selectedVehicle ? (
-          <div className="animate-in fade-in duration-500">
-            <Button
-              onClick={closeVehicleHistory}
-              variant="outline"
-              className="mb-8 border-[#1A1A1A] text-[#1A1A1A] hover:bg-[#1A1A1A] hover:text-[#F9F8F4] transition-colors rounded-none text-[10px] tracking-[0.2em] uppercase px-6 py-4 flex items-center gap-2"
-            >
-              ← Back to Manifest
-            </Button>
-
-            <div className="bg-[#FFFFFF] border border-[#DCD7CB] p-8 md:p-12 mb-8 relative">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 pb-8 border-b border-[#DCD7CB]">
-                <div>
-                  <h3 className="text-[10px] uppercase tracking-[0.2em] text-[#8C877D] font-semibold mb-2">
-                    Ledger Profile
-                  </h3>
-                  <h2 className="text-4xl font-['Playfair_Display',_serif] text-[#1A1A1A] tracking-wide">
-                    {selectedVehicle.licensePlate}
-                  </h2>
-                  <div className="flex gap-4 mt-4">
-                    <Badge variant="outline" className="border-[#1A1A1A] text-[#1A1A1A] rounded-none px-3 py-1 text-[9px] uppercase tracking-widest font-bold">
-                      {selectedVehicle.vin.slice(-6)}
-                    </Badge>
-                    <Badge variant="outline" className="border-[#8C877D] text-[#8C877D] rounded-none px-3 py-1 text-[9px] uppercase tracking-widest font-bold">
-                      {selectedVehicle.type}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mb-4">
-                <h3 className="text-[10px] uppercase tracking-[0.2em] text-[#8C877D] font-semibold mb-6 flex items-center gap-2">
-                  Trip Ledger / Historical Runs
-                </h3>
-
-                {historyLoading ? (
-                  <div className="flex justify-center py-20">
-                    <Loader2 className="w-8 h-8 animate-spin text-[#1A1A1A]" strokeWidth={1} />
-                  </div>
-                ) : vehicleHistory?.trips?.length > 0 ? (
-                  <div className="space-y-6">
-                    {vehicleHistory.trips.map((trip: any, idx: number) => {
-                      const bookings = trip.bookings || [];
-                      const passengerCount = bookings.length;
-                      const revenue = bookings.reduce((sum: number, b: any) => sum + Number(b.amount || 0), 0);
-                      
-                      let durationStr = "N/A";
-                      if (trip.actualStart && trip.actualEnd) {
-                        const diff = new Date(trip.actualEnd).getTime() - new Date(trip.actualStart).getTime();
-                        const mins = Math.floor(diff / 60000);
-                        const hrs = Math.floor(mins / 60);
-                        durationStr = hrs > 0 ? `${hrs}h ${mins % 60}m` : `${mins}m`;
-                      }
-
-                      return (
-                        <Card key={trip.id} className="border border-[#DCD7CB] shadow-none bg-[#FDFCF9] rounded-none group hover:border-[#1A1A1A] transition-colors">
-                          <CardHeader className="pb-3 border-b border-[#DCD7CB]/50">
-                            <div className="flex justify-between items-center">
-                              <div>
-                                <CardTitle className="font-['Playfair_Display',_serif] text-xl text-[#1A1A1A] group-hover:underline">
-                                  {trip.route?.name || 'Unassigned Route'}
-                                </CardTitle>
-                                <p className="text-[10px] uppercase tracking-widest text-[#8C877D] mt-2">
-                                  Date: {new Date(trip.scheduledStart).toLocaleDateString()}
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                <Badge variant="outline" className={`rounded-none text-[9px] uppercase tracking-widest ${trip.status === 'COMPLETED' ? 'border-[#1A1A1A] text-[#1A1A1A]' : 'border-[#8C877D] text-[#8C877D]'}`}>
-                                  {trip.status}
-                                </Badge>
-                              </div>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="pt-4 pb-4">
-                            <div className="grid grid-cols-3 gap-4">
-                              <div>
-                                <p className="text-[9px] uppercase tracking-widest text-[#8C877D] mb-1">Duration</p>
-                                <p className="text-sm text-[#1A1A1A] font-light">{durationStr}</p>
-                              </div>
-                              <div>
-                                <p className="text-[9px] uppercase tracking-widest text-[#8C877D] mb-1">Passengers</p>
-                                <p className="text-sm text-[#1A1A1A] font-light">{passengerCount}</p>
-                              </div>
-                              <div>
-                                <p className="text-[9px] uppercase tracking-widest text-[#8C877D] mb-1">Revenue</p>
-                                <p className="text-sm font-semibold font-mono text-[#1A1A1A]">₹{revenue}</p>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center py-20 border border-dashed border-[#DCD7CB]">
-                    <p className="text-sm text-[#8C877D] font-light italic">No historical runs recorded for this vehicle.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        ) : isRegistering ? (
+        {isRegistering ? (
           <Card className="border border-[#DCD7CB] shadow-none rounded-none bg-[#FDFCF9] mb-16 max-w-2xl mx-auto">
             <CardHeader className="border-b border-[#DCD7CB] pb-6 flex flex-row justify-between items-center">
               <CardTitle className="font-['Playfair_Display',_serif] text-2xl text-[#1A1A1A]">New Registration</CardTitle>
@@ -333,7 +204,7 @@ export default function FleetDashboard() {
                   {vehicles.length > 0 ? vehicles.map((v: any) => (
                     <TableRow 
                       key={v.id} 
-                      onClick={() => openVehicleHistory(v)}
+                      onClick={() => router.push(`/dashboard/fleet/${v.id}`)}
                       className="border-[#DCD7CB] hover:bg-[#F9F8F4] transition-colors cursor-pointer"
                     >
                       <TableCell className="pl-8 py-5 font-mono text-sm text-[#1A1A1A]">{v.vin}</TableCell>

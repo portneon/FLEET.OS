@@ -32,7 +32,12 @@ export class PrismaVehicleRepository implements IVehicleRepository {
 
   async findByOrganization(organizationId: string): Promise<Vehicle[]> {
     return await prisma.vehicle.findMany({
-      where: { organizationId }
+      where: { organizationId },
+      include: {
+        maintenanceLogs: {
+          orderBy: { nextDue: 'asc' }
+        }
+      }
     });
   }
 

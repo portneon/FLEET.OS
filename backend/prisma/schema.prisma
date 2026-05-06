@@ -9,9 +9,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ─────────────────────────────────────────────
-// ENUMS
-// ─────────────────────────────────────────────
+
 
 enum Role {
   ADMIN
@@ -52,7 +50,7 @@ enum TransactionType {
   EXPENSE
 }
 
-// ── New finance enums ────────────────────────
+
 
 enum CustomerType {
   INDIVIDUAL
@@ -104,9 +102,7 @@ enum PayableStatus {
   OVERDUE
 }
 
-// ─────────────────────────────────────────────
-// EXISTING MODELS (updated with finance relations)
-// ─────────────────────────────────────────────
+
 
 model Organization {
   id        String   @id @default(uuid())
@@ -179,7 +175,7 @@ model Vehicle {
   fleetId String?
   fleet   Fleet?  @relation(fields: [fleetId], references: [id])
 
-  // Financial metadata
+
   purchasePrice     Float?
   purchaseDate      DateTime?
   residualValue     Float?
@@ -304,7 +300,6 @@ model Loan {
   createdAt       DateTime      @default(now())
 }
 
-// Kept as ledger/audit trail — do NOT delete
 model Transaction {
   id          String          @id @default(uuid())
   amount      Float
@@ -319,9 +314,6 @@ model Transaction {
   createdAt DateTime @default(now())
 }
 
-// ─────────────────────────────────────────────
-// NEW FINANCE MODELS
-// ─────────────────────────────────────────────
 
 model Customer {
   id             String       @id @default(uuid())

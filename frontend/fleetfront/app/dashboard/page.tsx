@@ -20,7 +20,12 @@ export default function AdminDashboard() {
     revenue: 0,
     activeFleet: 0,
     driversOnDuty: 0,
-    alertCount: 0
+    alertCount: 0,
+    receivables: 0,
+    payables: 0,
+    inProgressTrips: 0,
+    scheduledTrips: 0,
+    maintenanceAlerts: 0,
   });
 
   useEffect(() => {
@@ -40,17 +45,38 @@ export default function AdminDashboard() {
         }
 
         if (!fleetRes.error && fleetRes.data) {
-          setStats(prev => ({ ...prev, activeFleet: fleetRes.data?.length || 0 }));
+          const fleetData = fleetRes.data || [];
+          let mAlerts = 0;
+          const now = new Date();
+          fleetData.forEach((v: any) => {
+            if (v.maintenanceLogs && v.maintenanceLogs.length > 0) {
+               const nextDue = new Date(v.maintenanceLogs[0].nextDue);
+               if (nextDue <= now) mAlerts++;
+            }
+          });
+          setStats(prev => ({ ...prev, activeFleet: fleetData.length, maintenanceAlerts: mAlerts }));
         }
 
         if (!financeRes.error && financeRes.data) {
-          // Use totalPaid from real invoice data as the revenue figure
-          setStats(prev => ({ ...prev, revenue: financeRes.data.totalPaid || 0 }));
+          setStats(prev => ({ 
+            ...prev, 
+            revenue: financeRes.data.totalPaid || 0,
+            receivables: financeRes.data.pendingReceivables || 0,
+            payables: financeRes.data.pendingPayables || 0,
+          }));
         }
 
         if (!tripsRes.error && tripsRes.data) {
           const cancelledTrips = tripsRes.data.filter((t: any) => t.status === 'CANCELLED');
-          setStats(prev => ({ ...prev, alertCount: cancelledTrips.length }));
+          const inProgress = tripsRes.data.filter((t: any) => t.status === 'IN_PROGRESS');
+          const scheduled = tripsRes.data.filter((t: any) => t.status === 'SCHEDULED');
+
+          setStats(prev => ({ 
+            ...prev, 
+            alertCount: cancelledTrips.length,
+            inProgressTrips: inProgress.length,
+            scheduledTrips: scheduled.length,
+          }));
 
           // Generate dynamic notices from cancelled trips
           const notices = cancelledTrips.slice(0, 3).map((t: any) => ({
@@ -90,7 +116,7 @@ export default function AdminDashboard() {
       <div className="p-6 md:p-12 lg:p-16 flex-1 overflow-auto">
 
         {/* KPI CARDS (Moved to the top) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           {[
             { label: "Paid Revenue", value: `₹${stats.revenue.toLocaleString()}`, icon: Banknote, path: '/dashboard/finance' },
             { label: "Active Fleet", value: stats.activeFleet, icon: Truck, path: '/dashboard/fleet' },
@@ -115,6 +141,60 @@ export default function AdminDashboard() {
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* SECONDARY KPI CARDS (Operational Enrichment) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          {/* Fleet Health */}
+          <Card onClick={() => router.push('/dashboard/fleet')} className="border border-[#DCD7CB] shadow-none bg-[#FDFCF9] rounded-none hover:bg-[#FFFFFF] transition-colors cursor-pointer">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#8C877D]">Fleet Health</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-4">
+                <div className="text-3xl font-light font-['Playfair_Display',serif] text-[#1A1A1A]">{stats.maintenanceAlerts}</div>
+                <div className="text-xs text-[#8C877D]">Vehicles need<br/>upcoming maintenance</div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Financial Overview */}
+          <Card onClick={() => router.push('/dashboard/finance')} className="border border-[#DCD7CB] shadow-none bg-[#FDFCF9] rounded-none hover:bg-[#FFFFFF] transition-colors cursor-pointer">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#8C877D]">Financial Overview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-2">
+                <div className="flex justify-between items-end">
+                   <div className="text-xs text-[#8C877D]">Receivables</div>
+                   <div className="text-lg font-light text-[#1A1A1A]">₹{stats.receivables.toLocaleString()}</div>
+                </div>
+                <div className="flex justify-between items-end border-t border-[#DCD7CB] pt-1">
+                   <div className="text-xs text-[#8C877D]">Payables</div>
+                   <div className="text-lg font-light text-[#1A1A1A]">₹{stats.payables.toLocaleString()}</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Active Operations */}
+          <Card onClick={() => router.push('/dashboard/transit')} className="border border-[#DCD7CB] shadow-none bg-[#FDFCF9] rounded-none hover:bg-[#FFFFFF] transition-colors cursor-pointer">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-[9px] uppercase tracking-[0.2em] font-bold text-[#8C877D]">Active Operations</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-2">
+                <div className="flex justify-between items-end">
+                   <div className="text-xs text-[#8C877D]">In Progress</div>
+                   <div className="text-lg font-light text-[#1A1A1A]">{stats.inProgressTrips} Trips</div>
+                </div>
+                <div className="flex justify-between items-end border-t border-[#DCD7CB] pt-1">
+                   <div className="text-xs text-[#8C877D]">Scheduled</div>
+                   <div className="text-lg font-light text-[#1A1A1A]">{stats.scheduledTrips} Trips</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
 

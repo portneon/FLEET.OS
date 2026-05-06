@@ -73,9 +73,7 @@ export class AuthController {
         }
     };
 
-    /**
-     * Get current user session info
-     */
+    
     public me = async (req: Request, res: Response): Promise<void> => {
         try {
             const user = (req as any).user;
