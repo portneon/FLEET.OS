@@ -80,6 +80,48 @@ export const dynamicPrismaQueryTool: AnalyticsTool = {
     // organizationId is ALWAYS injected — the LLM cannot override this.
     args.where = { ...(args.where ?? {}), organizationId: orgId };
 
+    // ── 4b. Sanitize groupBy args ─────────────────────────────────────────────
+    // Prisma's groupBy does NOT support raw SQL functions (e.g. _date_trunc).
+    // The `by` array must contain only plain field-name strings.
+    // Strip any object entries (e.g. { _date_trunc: ... }) the LLM may generate.
+    if (action === 'groupBy' && Array.isArray(args.by)) {
+      args.by = (args.by as any[]).filter((entry) => typeof entry === 'string');
+      if (args.by.length === 0) {
+        throw new Error(
+          'groupBy requires at least one valid scalar field name in the `by` array. ' +
+          'Prisma does not support raw SQL functions like _date_trunc. ' +
+          'Use the timeSeriesMetric tool for time-bucketed aggregations instead.'
+        );
+      }
+    }
+
+    // Sanitize orderBy: remove any keys that are raw-SQL objects (e.g. _date_trunc).
+    // In Prisma groupBy, orderBy must reference aggregate fns (_sum, _count, etc.) or plain scalar fields.
+    if (action === 'groupBy' && args.orderBy) {
+      const ALLOWED_AGGREGATE_KEYS = new Set(['_count', '_sum', '_avg', '_min', '_max']);
+      const sanitizeOrderBy = (ob: any): any => {
+        if (Array.isArray(ob)) return ob.map(sanitizeOrderBy).filter(Boolean);
+        if (ob && typeof ob === 'object') {
+          const cleaned: Record<string, any> = {};
+          for (const [k, v] of Object.entries(ob)) {
+            // Drop any key that is a raw-SQL function placeholder
+            if (k.startsWith('_date') || k.startsWith('_trunc') || k.startsWith('_raw')) continue;
+            // Keep known aggregate keys and plain string sort orders
+            cleaned[k] = v;
+          }
+          return Object.keys(cleaned).length > 0 ? cleaned : null;
+        }
+        return ob;
+      };
+      const cleanedOrderBy = sanitizeOrderBy(args.orderBy);
+      if (cleanedOrderBy === null || (Array.isArray(cleanedOrderBy) && cleanedOrderBy.length === 0)) {
+        // Remove invalid orderBy entirely — Prisma will use its default ordering
+        delete args.orderBy;
+      } else {
+        args.orderBy = cleanedOrderBy;
+      }
+    }
+
     // ── 5. Cap result size ────────────────────────────────────────────────────
     if (action === 'findMany' && !args.take) {
       args.take = 50; // default limit
