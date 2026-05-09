@@ -419,3 +419,17 @@ export const analyticsAPI = {
     return fetchAPI<any>(url);
   }
 };
+
+export const aiAnalyticsAPI = {
+  listSessions: async () => fetchAPI<any[]>('/ai-analytics/sessions'),
+  createSession: async () => fetchAPI<any>('/ai-analytics/session', { method: 'POST' }),
+  query: async (sessionId: string, message: string) =>
+    fetchAPI<any>('/ai-analytics/query', {
+      method: 'POST',
+      body: JSON.stringify({ sessionId, message }),
+    }),
+  getHistory: async (sessionId: string) =>
+    fetchAPI<any[]>(`/ai-analytics/session/${sessionId}/history`),
+  deleteSession: async (sessionId: string) =>
+    fetchAPI<any>(`/ai-analytics/session/${sessionId}`, { method: 'DELETE' }),
+};

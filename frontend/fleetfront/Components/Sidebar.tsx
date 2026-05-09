@@ -12,7 +12,8 @@ const Sidebar = () => {
         { name: 'Staff', path: '/dashboard/staff' },
         { name: 'Financials', path: '/dashboard/finance' },
         { name: 'Transit & Dispatch', path: '/dashboard/transit' },
-        { name: 'Analytics', path: '/dashboard/analytics' }
+        { name: 'Analytics', path: '/dashboard/analytics' },
+        { name: 'AI Analytics', path: '/dashboard/ai-analytics' }
     ];
 
     return (

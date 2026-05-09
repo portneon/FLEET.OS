@@ -43,6 +43,10 @@ import { AnalyticsController } from './modules/analytics/controllers/AnalyticsCo
 import { AnalyticsService } from './modules/analytics/services/AnalyticsService';
 import { PrismaAnalyticsRepository } from './modules/analytics/repositories/PrismaAnalyticsRepository';
 
+// --- AI Conversational Analytics Module ---
+import { AIAnalyticsRoute } from './modules/analytics/conversational/ai-analytics.routes';
+import { bootstrapTools } from './modules/analytics/conversational/bootstrap';
+
 // ============================================
 // Dependency Injection — Composition Root
 // ============================================
@@ -90,6 +94,10 @@ const analyticsService = new AnalyticsService(analyticsRepo);
 const analyticsController = new AnalyticsController(analyticsService);
 const analyticsRoute = new AnalyticsRoute(analyticsController);
 
+// 8. AI Conversational Analytics
+bootstrapTools(); // register tools
+const aiAnalyticsRoute = new AIAnalyticsRoute();
+
 // ============================================
 // App Bootstrap
 // ============================================
@@ -102,6 +110,7 @@ const app = new App([
     transitRoute,
     tripRoute,
     analyticsRoute,
+    aiAnalyticsRoute,
 ]);
 
 app.listen();
