@@ -1,7 +1,7 @@
 import os
-from langchain_community.document_loaders import UnstructuredMarkdownLoader
+from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores.upstash import UpstashVectorStore
 from loguru import logger
 from core.config import settings
@@ -13,7 +13,7 @@ def ingest_knowledge_base():
         return False
         
     logger.info("Loading knowledge base document...")
-    loader = UnstructuredMarkdownLoader(settings.KNOWLEDGE_BASE_PATH)
+    loader = TextLoader(settings.KNOWLEDGE_BASE_PATH, encoding="utf-8")
     docs = loader.load()
     
     logger.info("Splitting document into chunks...")

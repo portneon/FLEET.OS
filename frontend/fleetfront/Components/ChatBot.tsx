@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, Loader2 } from "lucide-react";
-import { Button } from "./ui/button";
+import { MessageCircle, X, Send, Loader2, Maximize2, Minimize2 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
 interface Message {
   role: "user" | "bot";
@@ -11,8 +11,13 @@ interface Message {
 
 export function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: "bot", content: "Hi! I'm the FleetOS assistant. How can I help you today?" }
+    {
+      role: "bot",
+      content:
+        "Welcome to FleetOS. How may I assist you today?",
+    },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -37,23 +42,22 @@ export function ChatBot() {
     try {
       const response = await fetch("http://localhost:8000/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: userMessage }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch response");
-      }
+      if (!response.ok) throw new Error("Failed to fetch response");
 
       const data = await response.json();
       setMessages((prev) => [...prev, { role: "bot", content: data.answer }]);
-    } catch (error) {
-      console.error(error);
+    } catch {
       setMessages((prev) => [
         ...prev,
-        { role: "bot", content: "Sorry, I'm having trouble connecting to the server right now." },
+        {
+          role: "bot",
+          content:
+            "I'm unable to connect to the server at this moment. Please try again shortly.",
+        },
       ]);
     } finally {
       setIsLoading(false);
@@ -69,74 +73,189 @@ export function ChatBot() {
 
   return (
     <>
-      {/* Chat Button */}
+      {/* Floating Trigger Button */}
       {!isOpen && (
         <button
+          id="chatbot-trigger"
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg transition-transform hover:scale-105 z-50 flex items-center justify-center"
-          aria-label="Open chat"
+          className="fixed bottom-8 right-8 z-50 flex items-center gap-3 bg-[#1A1A1A] text-[#F9F8F4] px-5 py-3 border border-[#1A1A1A] hover:bg-[#333333] transition-all duration-300 group"
+          aria-label="Open FleetOS assistant"
         >
-          <MessageCircle size={28} />
+          <MessageCircle size={16} strokeWidth={1.5} />
+          <span className="text-[10px] uppercase tracking-[0.2em] font-semibold">
+            Assistant
+          </span>
         </button>
       )}
 
-      {/* Chat Window */}
+      {/* Backdrop — only shown in expanded/floating-page mode */}
+      {isOpen && isExpanded && (
+        <div
+          className="fixed inset-0 bg-black/10 backdrop-blur-sm z-40 transition-opacity"
+          onClick={() => {
+            setIsExpanded(false);
+          }}
+        />
+      )}
+
+      {/* Chat Panel */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-80 sm:w-96 h-[500px] max-h-[80vh] bg-white border border-gray-200 rounded-2xl shadow-2xl flex flex-col z-50 overflow-hidden font-sans">
+        <div
+          style={{
+            background: isExpanded
+              ? "linear-gradient(to bottom, #FBFBF9 0%, #F9F8F4 100%)"
+              : undefined,
+          }}
+          className={`fixed z-50 border border-[#DCD7CB] flex flex-col shadow-[0_32px_120px_rgba(0,0,0,0.16)] transition-all duration-300 overflow-hidden ${
+            isExpanded
+              // Expanded: centered floating page
+              ? "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[65vw] h-[75vh] rounded-xl"
+              // Default: bottom-right corner panel
+              : "bottom-8 right-8 w-[90vw] sm:w-[380px] h-[520px] max-h-[85vh] bg-[#F9F8F4] rounded-none translate-x-0 translate-y-0"
+          }`}
+        >
           {/* Header */}
-          <div className="bg-blue-600 text-white p-4 flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <MessageCircle size={20} />
-              <h3 className="font-semibold">FleetOS Assistant</h3>
+          <div
+            className={`flex items-center justify-between border-b border-[#DCD7CB] bg-[#FBFBF9] transition-all duration-300 ${
+              isExpanded ? "px-8 py-5" : "px-6 py-4"
+            }`}
+          >
+            <div>
+              <h3 className="text-sm font-['Playfair_Display',serif] tracking-tight text-[#1A1A1A]">
+                Fleet<span className="italic font-light">OS</span> Assistant
+              </h3>
+              <p className="text-[9px] uppercase tracking-[0.2em] font-semibold text-[#8C877D] mt-0.5">
+                Knowledge Base
+              </p>
             </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="text-white hover:text-gray-200 transition-colors"
-            >
-              <X size={20} />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="text-[#8C877D] hover:text-[#1A1A1A] transition-colors p-1"
+                aria-label={isExpanded ? "Minimize assistant" : "Maximize assistant"}
+              >
+                {isExpanded ? <Minimize2 size={14} strokeWidth={1.5} /> : <Maximize2 size={14} strokeWidth={1.5} />}
+              </button>
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  setIsExpanded(false);
+                }}
+                className="text-[#8C877D] hover:text-[#1A1A1A] transition-colors p-1"
+                aria-label="Close assistant"
+              >
+                <X size={16} strokeWidth={1.5} />
+              </button>
+            </div>
           </div>
 
-          {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 bg-gray-50 flex flex-col gap-3">
+          {/* Messages */}
+          <div
+            className={`flex-1 overflow-y-auto flex flex-col transition-all duration-300 ${
+              isExpanded
+                ? "px-10 py-8 gap-6"
+                : "px-5 py-4 gap-4"
+            }`}
+          >
+            <div
+              className={`w-full ${
+                isExpanded ? "max-w-4xl mx-auto" : ""
+              }`}
+            >
             {messages.map((msg, idx) => (
               <div
                 key={idx}
-                className={`max-w-[80%] p-3 rounded-xl text-sm ${
-                  msg.role === "user"
-                    ? "bg-blue-600 text-white self-end rounded-br-none"
-                    : "bg-gray-200 text-gray-800 self-start rounded-bl-none"
+                className={`${
+                  isExpanded ? "max-w-[70%]" : "max-w-[85%]"
+                } ${
+                  msg.role === "user" ? "self-end" : "self-start"
                 }`}
               >
-                {msg.content}
+                {msg.role === "bot" && (
+                  <span className="text-[9px] uppercase tracking-[0.15em] font-semibold text-[#8C877D] mb-1 block">
+                    FleetOS
+                  </span>
+                )}
+                <div
+                  className={`leading-relaxed transition-all duration-300 ${
+                    isExpanded
+                      ? "text-[14px] px-5 py-4"
+                      : "text-[13px] px-4 py-3"
+                  } ${
+                    msg.role === "user"
+                      ? "bg-[#1A1A1A] text-[#F9F8F4]"
+                      : "bg-[#EBE6DD] text-[#1A1A1A]"
+                  }`}
+                >
+                  {msg.role === "bot" ? (
+                    <ReactMarkdown
+                      components={{
+                        p: ({ node, ...props }) => <p className="mb-3 last:mb-0" {...props} />,
+                        ul: ({ node, ...props }) => <ul className="list-disc pl-5 mb-3 space-y-1" {...props} />,
+                        ol: ({ node, ...props }) => <ol className="list-decimal pl-5 mb-3 space-y-1" {...props} />,
+                        li: ({ node, ...props }) => <li className="pl-1" {...props} />,
+                        strong: ({ node, ...props }) => <strong className="font-semibold text-[#1A1A1A]" {...props} />,
+                        h3: ({ node, ...props }) => <h3 className="font-bold text-sm mt-3 mb-2" {...props} />,
+                        h4: ({ node, ...props }) => <h4 className="font-semibold mt-2 mb-1" {...props} />
+                      }}
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
+                  ) : (
+                    msg.content
+                  )}
+                </div>
               </div>
             ))}
             {isLoading && (
-              <div className="bg-gray-200 text-gray-800 self-start rounded-xl rounded-bl-none p-3 max-w-[80%] flex items-center gap-2 text-sm">
-                <Loader2 size={16} className="animate-spin text-gray-500" />
-                <span>Thinking...</span>
+              <div className="self-start max-w-[85%]">
+                <span className="text-[9px] uppercase tracking-[0.15em] font-semibold text-[#8C877D] mb-1 block">
+                  FleetOS
+                </span>
+                <div className="bg-[#EBE6DD] text-[#8C877D] px-4 py-3 flex items-center gap-2 text-[13px]">
+                  <Loader2
+                    size={14}
+                    className="animate-spin"
+                    strokeWidth={1.5}
+                  />
+                  <span className="italic">Processing…</span>
+                </div>
               </div>
             )}
+            </div>
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Input Area */}
-          <div className="p-3 bg-white border-t border-gray-200 flex gap-2">
+          {/* Input */}
+          <div
+            className={`border-t border-[#DCD7CB] bg-[#FBFBF9] transition-all duration-300 ${
+              isExpanded ? "px-8 py-6" : "px-5 py-4"
+            }`}
+          >
+            <div
+              className={`w-full flex gap-3 items-end ${
+                isExpanded ? "max-w-4xl mx-auto" : ""
+              }`}
+            >
             <textarea
-              className="flex-1 resize-none bg-gray-100 rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 max-h-24 min-h-[40px] text-gray-800"
-              placeholder="Ask a question..."
+              id="chatbot-input"
+              className="flex-1 resize-none bg-transparent text-[13px] text-[#1A1A1A] placeholder-[#8C877D] focus:outline-none leading-relaxed min-h-[20px] max-h-24"
+              placeholder="Ask a question…"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               rows={1}
             />
-            <Button
+            <button
+              id="chatbot-send"
               onClick={handleSend}
               disabled={isLoading || !input.trim()}
-              className="bg-blue-600 hover:bg-blue-700 self-end h-[40px] w-[40px] p-0 flex items-center justify-center rounded-lg disabled:opacity-50"
+              className="text-[#1A1A1A] hover:text-[#8C877D] transition-colors disabled:opacity-30 disabled:cursor-not-allowed p-1"
+              aria-label="Send message"
             >
-              <Send size={18} className="text-white" />
-            </Button>
+              <Send size={16} strokeWidth={1.5} />
+            </button>
+            </div>
           </div>
         </div>
       )}

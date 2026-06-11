@@ -11,7 +11,7 @@ class Settings:
         
         # Path to the knowledge base file
         self.KNOWLEDGE_BASE_PATH = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), "../../../documentation/FleetOS_Knowledge_Base.md")
+            os.path.join(os.path.dirname(__file__), "../../documentation/FleetOS_Knowledge_Base.md")
         )
         
 settings = Settings()
