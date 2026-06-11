@@ -28,6 +28,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { ChatBot } from "@/Components/ChatBot";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -38,7 +40,10 @@ export default function RootLayout({
       lang="en"
       className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <ChatBot />
+      </body>
     </html>
   );
 }

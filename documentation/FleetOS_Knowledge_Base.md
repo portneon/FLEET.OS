@@ -88,7 +88,6 @@ FleetOS features a robust "Money Jar" (Financial Ledger) that automates organiza
 ### Key Data Entities
 - **Organization**: The top-level container for all data.
 - **User/Profile**: Authentication and role-specific metadata.
-- **Telemetry**: Time-series GPS data for real-time vehicle tracking.
 - **Ledger/Transaction**: Atomic records of every financial movement within the system.
 
 ---
@@ -101,8 +100,6 @@ A: Ensure you are logged in with an account associated with the correct Organiza
 **Q: How is "Net Profit" calculated on the dashboard?**
 A: FleetOS uses the formula: `Net Profit = (Total Paid Invoices) - (Total Expenses + Fuel Costs + Maintenance Costs + Paid Payroll)`.
 
-**Q: Can I track a vehicle in real-time?**
-A: Yes. Vehicles on an active trip stream **Telemetry** data (Latitude/Longitude), which is visualized on the Dispatcher's map view.
 
 **Q: What happens if a payment fails?**
 A: The system marks the Payment as FAILED and keeps the associated Invoice status as PENDING or OVERDUE, alerting the Finance module to follow up.
