@@ -433,3 +433,15 @@ export const aiAnalyticsAPI = {
   deleteSession: async (sessionId: string) =>
     fetchAPI<any>(`/ai-analytics/session/${sessionId}`, { method: 'DELETE' }),
 };
+
+
+export const chatAPI = {
+  query: async (message: string) => {
+    const data = await fetch('https://fleet-os-2.onrender.com/api/chat', {
+      method: 'POST',
+      body: JSON.stringify({ query: message }),
+    })
+    return data
+  }
+};
+
