@@ -11,7 +11,7 @@ export interface ConversationTurn {
 
 export interface SessionSummary {
   sessionId: string;
-  title: string;            // First user question (truncated)
+  title: string;           
   domain?: string;
   createdAt: Date;
   lastActivity: Date;

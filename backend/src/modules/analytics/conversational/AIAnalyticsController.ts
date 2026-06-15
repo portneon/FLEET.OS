@@ -1,6 +1,4 @@
 import { Request, Response } from 'express';
-import { DomainClassifier } from './classifier/DomainClassifier';
-import { SecurityLayer } from './security/SecurityLayer';
 import { ToolRegistry } from './tools/ToolRegistry';
 import { GroqRouter } from './llm/GroqRouter';
 import { NarrativeGenerator } from './llm/NarrativeGenerator';
@@ -14,7 +12,6 @@ export class AIAnalyticsController {
   public query = async (req: Request, res: Response): Promise<void> => {
     try {
       const orgId = req.headers['x-organization-id'] as string;
-      const role  = (req.headers['x-user-role'] as string) ?? 'ADMIN';
       const { message, sessionId } = req.body as { message: string; sessionId?: string };
 
       if (!message?.trim()) {
@@ -22,53 +19,70 @@ export class AIAnalyticsController {
         return;
       }
 
-      // 1. Sanitise query
-      const query = SecurityLayer.sanitiseQuery(message);
+      const query = message.trim();
+      const domain = 'general'; // Defaulting domain to bypass complex domain classification
 
-      // 2. Classify domain (keyword-based, no LLM cost)
-      const { domain, suggestedTools } = DomainClassifier.classify(query);
-
-      // 3. Security validation
-      const check = SecurityLayer.validateRequest(orgId, role, domain, query);
-      if (!check.allowed) {
-        res.status(403).json({ error: check.reason });
-        return;
-      }
-
-      // 4. Get or create session (session persists across queries)
+      // 1. Get or create session
       const session = SessionStore.getOrCreate(sessionId, orgId);
       SessionStore.updateDomain(session.sessionId, domain);
 
-      // 5. Build conversation context for LLM (text summaries only — no raw DB data)
+      // 2. Build conversation context for LLM
       const context = SessionStore.buildContextSummary(session);
 
-      // 6. Give LLM ALL tool signatures so it picks the best one based on intent
+      // 3. Give LLM ALL tool signatures so it picks the best one
       const allTools = ToolRegistry.getAll();
       const toolNames = allTools.map(t => t.name);
       const signatures = ToolRegistry.getSignatures(toolNames);
 
-      // 7. LLM selects tool + params (read-only, sees only schema + query)
+      // 4. LLM selects tool + params
       const selection = await GroqRouter.selectTool(query, domain, signatures, context, toolNames);
 
-      // 8. Execute selected tool via Prisma (always enforces orgId in every query)
+      // 5. Execute selected tool via Prisma
       const result = await ToolRegistry.execute(selection.tool, selection.params, orgId, prisma);
       if (!result.success) {
         res.status(500).json({ error: result.error ?? 'Tool execution failed.' });
         return;
       }
 
-      // 9. Build compact summary for narrative (LLM NEVER sees full raw records)
-      const resultSummary = NarrativeGenerator.buildResultSummary(selection.tool, result.data);
+      // 6. Check for empty data BEFORE NarrativeGenerator
+      //    dynamicSqlQuery returns { result: [...], visualization: {...} }
+      //    Other tools return arrays or objects directly
+      const isEmptyData = (d: any): boolean => {
+        if (!d) return true;
+        if (Array.isArray(d) && d.length === 0) return true;
+        // dynamicSqlQuery shape: { result: [...], visualization: {...} }
+        if (d.result !== undefined) {
+          if (!d.result) return true;
+          if (Array.isArray(d.result) && d.result.length === 0) return true;
+          // Check for single row where all values are null (e.g. SUM on empty set)
+          if (Array.isArray(d.result) && d.result.length === 1) {
+            const row = d.result[0];
+            const allNull = Object.values(row).every(v => v === null || v === undefined);
+            if (allNull) return true;
+          }
+        }
+        return false;
+      };
+      const isEmpty = isEmptyData(result.data);
 
-      // 10. Generate AI narrative + follow-up suggestions
-      const { narrative, insights, recommendations } = await NarrativeGenerator.generate(
-        query, domain, selection.tool, resultSummary
-      );
+      let narrative = '';
+      let insights: string[] = [];
+      let recommendations: string[] = [];
+      let followUps: string[] = [];
 
-      // 11. Generate AI follow-up question suggestions
-      const followUps = await NarrativeGenerator.generateFollowUps(query, domain, resultSummary);
+      if (!isEmpty) {
+        // Only generate narratives if we actually have data
+        const resultSummary = NarrativeGenerator.buildResultSummary(selection.tool, result.data);
+        const narrativeResult = await NarrativeGenerator.generate(query, domain, selection.tool, resultSummary);
+        narrative = narrativeResult.narrative;
+        insights = narrativeResult.insights;
+        recommendations = narrativeResult.recommendations;
+        
+        // Follow ups can be bundled or generated separately. We'll generate them now if we have data.
+        followUps = await NarrativeGenerator.generateFollowUps(query, domain, resultSummary);
+      }
 
-      // 12. Format into structured dashboard response
+      // 7. Format into structured dashboard response
       const response = ResultFormatter.format(
         session.sessionId,
         query,
@@ -82,9 +96,14 @@ export class AIAnalyticsController {
         followUps
       );
 
-      // 13. Persist conversation turns
+      // Set empty state explicit flag if needed
+      if (isEmpty) {
+        response.noDataFound = true;
+      }
+
+      // 8. Persist conversation turns
       SessionStore.addTurn(session.sessionId, { role: 'user', content: query, domain, timestamp: new Date() });
-      SessionStore.addTurn(session.sessionId, { role: 'assistant', content: narrative, tool: selection.tool, domain, timestamp: new Date() });
+      SessionStore.addTurn(session.sessionId, { role: 'assistant', content: narrative || 'No data found.', tool: selection.tool, domain, timestamp: new Date() });
 
       res.status(200).json({ data: response });
     } catch (err: any) {

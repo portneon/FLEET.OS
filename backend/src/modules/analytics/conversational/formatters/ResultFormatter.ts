@@ -34,6 +34,7 @@ export interface AIAnalyticsResponse {
   recommendations: string[];
   followUps: string[];
   reasoning?: string;
+  noDataFound?: boolean;
 }
 
 export class ResultFormatter {
@@ -195,54 +196,78 @@ export class ResultFormatter {
       }
     }
 
-    // ── dynamicPrismaQuery (Heuristic Formatting) ───────────────────────────
-    if (toolName === 'dynamicPrismaQuery' && toolData) {
+    let noDataFound = false;
+
+    // ── dynamicSqlQuery (Spec-driven and Heuristic Formatting) ───────────────
+    if (toolName === 'dynamicSqlQuery' && toolData) {
       const data = toolData.result;
+      const vis = toolData.visualization || {};
       
-      if (Array.isArray(data) && data.length > 0) {
+      if (!data || (Array.isArray(data) && data.length === 0)) {
+        noDataFound = true;
+      } else if (Array.isArray(data) && data.length === 1 && Object.values(data[0]).every(v => v === null || v === undefined)) {
+        noDataFound = true;
+      }
+
+      if (!noDataFound && Array.isArray(data) && data.length > 0) {
         const first = data[0];
         const keys = Object.keys(first);
-        
-        // Add Table
-        tables.push({
-          title: 'Query Results',
-          columns: keys.map(k => ({ 
-            key: k, 
-            label: ResultFormatter.friendlyMetricLabel(k),
-            type: typeof first[k] === 'number' ? 'number' : 'string'
-          })),
-          rows: data
-        });
 
-        // Try to find a chart candidate (one string/date and one number)
-        const numKey = keys.find(k => typeof first[k] === 'number');
-        const labelKey = keys.find(k => typeof first[k] === 'string' || first[k] instanceof Date) || keys[0];
+        const type = vis.type || 'table';
+        const title = vis.title || 'Query Results';
 
-        if (numKey && labelKey && numKey !== labelKey) {
+        if (type === 'kpi') {
+          Object.entries(first).forEach(([k, v]) => {
+            if (typeof v === 'number') {
+              const friendlyLabel = ResultFormatter.friendlyMetricLabel(k);
+              const isCurrency = friendlyLabel.toLowerCase().includes('revenue') || 
+                               friendlyLabel.toLowerCase().includes('cost') || 
+                               friendlyLabel.toLowerCase().includes('total') || 
+                               friendlyLabel.toLowerCase().includes('profit');
+              kpiCards.push({ 
+                label: friendlyLabel, 
+                value: isCurrency ? ResultFormatter.formatCurrency(v) : v, 
+                color: 'blue' 
+              });
+            } else if (typeof v === 'string') {
+              kpiCards.push({ label: ResultFormatter.friendlyMetricLabel(k), value: v, color: 'purple' });
+            }
+          });
+        } else if (type === 'bar' || type === 'line' || type === 'pie' || type === 'donut' || type === 'area') {
+          const xKey = vis.xKey || keys[0];
+          const yKey = vis.yKey || keys.find(k => typeof first[k] === 'number') || keys[0];
+          
           charts.push({
-            type: data.length > 10 ? 'line' : 'bar',
-            title: `Trend of ${ResultFormatter.friendlyMetricLabel(numKey)}`,
-            data: data.map(r => ({ label: String(r[labelKey]), value: r[numKey] })),
+            type: (type === 'bar' || type === 'line' || type === 'pie' || type === 'donut' || type === 'area') ? type as any : 'bar',
+            title,
+            data: data.map((r: any) => ({
+              label: String(r[xKey]),
+              value: Number(r[yKey]) || 0
+            })),
             xKey: 'label',
             yKey: 'value'
           });
+
+          tables.push({
+            title: 'Detailed Breakdown',
+            columns: keys.map(k => ({ 
+              key: k, 
+              label: ResultFormatter.friendlyMetricLabel(k),
+              type: typeof first[k] === 'number' ? 'number' : 'string'
+            })),
+            rows: data
+          });
+        } else {
+          tables.push({
+            title,
+            columns: keys.map(k => ({ 
+              key: k, 
+              label: ResultFormatter.friendlyMetricLabel(k),
+              type: typeof first[k] === 'number' ? 'number' : 'string'
+            })),
+            rows: data
+          });
         }
-      } else if (typeof data === 'object' && data !== null) {
-        // Single object result (aggregate or findFirst)
-        Object.entries(data).forEach(([k, v]) => {
-          if (typeof v === 'number') {
-            kpiCards.push({ label: ResultFormatter.friendlyMetricLabel(k), value: v, color: 'blue' });
-          } else if (typeof v === 'object' && v !== null) {
-            // Flatten nested aggregates like _sum, _avg
-            Object.entries(v).forEach(([subK, subV]) => {
-              if (typeof subV === 'number') {
-                kpiCards.push({ label: `${ResultFormatter.friendlyMetricLabel(k)} ${ResultFormatter.friendlyMetricLabel(subK)}`, value: subV, color: 'purple' });
-              }
-            });
-          }
-        });
-      } else if (typeof data === 'number') {
-        kpiCards.push({ label: 'Result', value: data, color: 'blue' });
       }
     }
 
@@ -256,10 +281,11 @@ export class ResultFormatter {
       charts,
       tables,
       insights,
-      narrative,
+      narrative: noDataFound ? 'No data found matching your query.' : narrative,
       recommendations,
       followUps,
       reasoning,
+      noDataFound,
     };
   }
 

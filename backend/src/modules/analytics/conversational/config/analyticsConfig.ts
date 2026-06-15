@@ -60,3 +60,26 @@ export const LLM_CONFIG = {
   narrativeMaxTokens:    400,
   narrativeTemperature:  0.4,
 };
+
+// ─── Shared Database Schema Reference for LLM ──────────────────────────────────
+export const DB_SCHEMA = `
+Models & Key Fields (for direct SQL SELECT queries):
+- User: id, email, role('ADMIN','DISPATCHER','DRIVER','FINANCE'), organizationId
+- DriverProfile: id, userId, licenseNumber, experience, performance, status('AVAILABLE','ON_TRIP','OFF_DUTY')  (No organizationId; join User)
+- Vehicle: id, vin, type('BUS','TRUCK','VAN'), licensePlate, seatingCapacity, status, purchasePrice, purchaseDate, residualValue, insuranceCost, loanAmount, monthlyEmi, organizationId
+- Fleet: id, name, organizationId
+- Route: id, name, organizationId
+- Stop: id, name, latitude, longitude, organizationId
+- Booking: id, tripId, userId, amount, status('CONFIRMED','CANCELLED','COMPLETED'), organizationId, createdAt
+- Trip: id, routeId, vehicleId, driverId, status('SCHEDULED','IN_PROGRESS','COMPLETED','CANCELLED'), scheduledStart, actualStart, actualEnd, organizationId
+- Transaction: id, amount, type('INCOME','EXPENSE'), category, description, date, organizationId
+- Customer: id, name, email, phone, customerType('INDIVIDUAL','BUSINESS'), organizationId
+- Invoice: id, customerId, tripId, subtotal, tax, discount, total, status('PENDING','PAID','OVERDUE','CANCELLED'), issuedAt, dueDate, paidAt, organizationId
+- Payment: id, invoiceId, amount, method('CASH','CARD','BANK_TRANSFER','UPI'), status('SUCCESS','FAILED','REFUNDED'), paidAt  (No organizationId; join Invoice)
+- Expense: id, vehicleId, driverId, tripId, category('FUEL','MAINTENANCE','SALARY','INSURANCE','TAX','TOLL','RENT','PARKING','LOAN_PAYMENT','OTHER'), amount, vendor, notes, expenseDate, organizationId
+- FuelLog: id, vehicleId, tripId, liters, cost, odometer, filledAt (No organizationId; join Vehicle or Trip)
+- MaintenanceLog: id, vehicleId, maintenanceType, cost, vendor, notes, servicedAt, nextDue (No organizationId; join Vehicle)
+- Payroll: id, driverId, month, baseSalary, bonus, deductions, netPay, paidAt (No organizationId; join DriverProfile -> User)
+- Receivable: id, invoiceId, amountDue, dueDate, status('PENDING','PAID','OVERDUE'), organizationId
+- Payable: id, vendor, amount, dueDate, status('PENDING','PAID','OVERDUE'), organizationId
+`;

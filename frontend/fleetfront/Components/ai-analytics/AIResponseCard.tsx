@@ -20,6 +20,7 @@ export interface AIResponse {
   recommendations: string[];
   followUps: string[];
   reasoning?: string;
+  noDataFound?: boolean;
 }
 
 const DOMAIN_COLORS: Record<string, string> = {
@@ -75,8 +76,19 @@ export function AIResponseCard({ response, onFollowUp }: AIResponseCardProps) {
           <p className="text-sm text-[#2A2A2A] leading-relaxed">{response.narrative}</p>
         </div>
 
+        {/* ── Empty State ── */}
+        {response.noDataFound && (
+          <div className="flex flex-col items-center justify-center py-10 text-center px-4 bg-[#F9F8F4] border border-dashed border-[#DCD7CB] rounded-xl">
+            <Database className="w-8 h-8 text-[#AEABA5] mb-3" />
+            <h4 className="text-sm font-semibold text-[#1A1A1A] mb-1">No Data Found</h4>
+            <p className="text-xs text-[#8C877D] max-w-sm">
+              The query executed successfully but returned zero rows or null metrics for this organization.
+            </p>
+          </div>
+        )}
+
         {/* ── KPI Cards ── */}
-        {hasKPIs && (
+        {!response.noDataFound && hasKPIs && (
           <div className={`grid gap-3 ${
             response.kpiCards.length === 1 ? 'grid-cols-1 max-w-xs' :
             response.kpiCards.length === 2 ? 'grid-cols-2' :
@@ -88,7 +100,7 @@ export function AIResponseCard({ response, onFollowUp }: AIResponseCardProps) {
         )}
 
         {/* ── Charts & Tables ── */}
-        {(hasCharts || hasTables) && (
+        {!response.noDataFound && (hasCharts || hasTables) && (
           <div className={`grid gap-6 ${hasCharts && hasTables ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
             {hasCharts && response.charts.map((chart, i) => (
               <div key={i} className="flex flex-col">
@@ -108,7 +120,7 @@ export function AIResponseCard({ response, onFollowUp }: AIResponseCardProps) {
         )}
 
         {/* ── Insights & Recommendations ── */}
-        {(hasInsights || hasRecs) && (
+        {!response.noDataFound && (hasInsights || hasRecs) && (
           <div className="grid md:grid-cols-2 gap-4 pt-2 border-t border-[#F0EFEA]">
             {hasInsights && (
               <div className="space-y-2">

@@ -12,7 +12,7 @@ FleetOS is a next-generation, high-performance fleet management system designed 
 ---
 
 ## 2. Role-Based Access Control (RBAC)
-FleetOS enforces strict organizational boundaries and role-based permissions:
+FleetOS enforces strict organizational boundaries and role-based permis̉qxdwefrvgtb[;/'-pgt5frvdeswaq        AQSWDEFGsions:
 
 | Role | Responsibilities |
 | :--- | :--- |

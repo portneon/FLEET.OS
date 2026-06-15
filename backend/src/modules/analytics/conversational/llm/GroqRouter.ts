@@ -1,5 +1,5 @@
 import Groq from 'groq-sdk';
-import { LLM_CONFIG } from '../config/analyticsConfig';
+import { LLM_CONFIG, DB_SCHEMA } from '../config/analyticsConfig';
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -31,64 +31,57 @@ export class GroqRouter {
     sessionContext: string,
     availableToolNames: string[]
   ): Promise<ToolSelection> {
-const DB_SCHEMA = `
-Models & Key Fields (all implicitly filtered by organizationId):
-- User: email, role(ADMIN,DISPATCHER,DRIVER,FINANCE)
-- DriverProfile: userId, licenseNumber, experience, performance, status(AVAILABLE,ON_TRIP,OFF_DUTY)
-- Vehicle: vin, type(BUS,TRUCK,VAN), licensePlate, seatingCapacity, status, purchasePrice, purchaseDate, residualValue, insuranceCost, loanAmount, monthlyEmi
-- Fleet: name
-- Route: name
-- Stop: name, latitude, longitude
-- Booking: tripId, userId, amount, status(CONFIRMED,CANCELLED,COMPLETED)
-- Trip: routeId, vehicleId, driverId, status(SCHEDULED,IN_PROGRESS,COMPLETED,CANCELLED), scheduledStart, actualStart, actualEnd
-- Transaction: amount, type(INCOME,EXPENSE), category, date
-- Customer: name, email, phone, customerType(INDIVIDUAL,BUSINESS)
-- Invoice: customerId, tripId, subtotal, tax, total, status(PENDING,PAID,OVERDUE,CANCELLED), issuedAt, dueDate
-- Payment: invoiceId, amount, method, status
-- Expense: vehicleId, driverId, tripId, category(FUEL,MAINTENANCE,SALARY,INSURANCE,TAX,TOLL,RENT,OTHER), amount, expenseDate
-- FuelLog: vehicleId, tripId, liters, cost, odometer, filledAt
-- MaintenanceLog: vehicleId, maintenanceType, cost, servicedAt
-- Payroll: driverId, month, baseSalary, bonus, deductions, netPay
-- Receivable: invoiceId, amountDue, dueDate, status
-- Payable: vendor, amount, dueDate, status
-`;
+
 
     const systemPrompt = `You are an analytics tool selector for a fleet management system.
 Your ONLY job is to select the correct analytics tool and its parameters based on the user's query.
 You have READ-ONLY access to analytics data. You cannot create, update, or delete any data.
 
+DATABASE SCHEMA (use these exact table and column names in SQL queries):
+${DB_SCHEMA}
+
 RULES:
 1. Respond with ONLY valid JSON — no markdown, no code blocks, no explanation text.
 2. The "tool" field must be one of the available tool names listed.
-3. If none of the predefined tools perfectly match the user's intent, YOU MUST fall back to "dynamicPrismaQuery".
-4. When using "dynamicPrismaQuery", write a valid Prisma query using "model", "action" (findMany, aggregate, count, groupBy), and "args". Only use models and fields from the schema below.
-5. All dates must be converted to ISO strings.
-
-Schema Reference for dynamicPrismaQuery:
-${DB_SCHEMA}
-
-Available tools: ${availableToolNames.join(', ')}
-
-Session context (for follow-up queries): ${sessionContext || 'None — this is a fresh query.'}
+3. If none of the predefined tools perfectly match the user's intent, YOU MUST fall back to "dynamicSqlQuery".
+4. When using "dynamicSqlQuery", write a standard MySQL "sql" SELECT query and a "visualization" JSON string.
+5. In the SELECT query, you DO NOT need to worry about tenant isolation or organizationId. The backend engine will automatically enforce tenant scope. Do NOT include :orgId or any organizationId filter.
+6. If you need to join tables, do so normally without organizationId conditions.
+7. For dynamic date filters, use standard MySQL date functions:
+   * Current month: date >= DATE_FORMAT(NOW(), '%Y-%m-01') AND date <= LAST_DAY(NOW())
+   * Current date/time: NOW()
+   * Same month last year: date >= DATE_SUB(DATE_FORMAT(NOW(), '%Y-%m-01'), INTERVAL 1 YEAR) AND date <= LAST_DAY(DATE_SUB(NOW(), INTERVAL 1 YEAR))
+   * NEVER generate literal Javascript expressions like \`\${new Date()}\` as they will crash the engine.
+8. Available tools: ${availableToolNames.join(', ')}
 
 Respond ONLY with this JSON format:
 {
-  "tool": "<tool_name_or_dynamicPrismaQuery>",
+  "tool": "<tool_name_or_dynamicSqlQuery>",
   "params": { <key>: <value> },
   "reasoning": "<one sentence why>"
 }
-Example dynamicPrismaQuery params (args must be a JSON OBJECT, NOT a string):
+
+Example dynamicSqlQuery params (SQL must be SELECT only):
 {
-  "tool": "dynamicPrismaQuery",
+  "tool": "dynamicSqlQuery",
   "params": {
-    "model": "expense",
-    "action": "groupBy",
-    "args": { "by": ["category"], "_sum": { "amount": true }, "orderBy": { "_sum": { "amount": "desc" } } }
+    "sql": "SELECT category, SUM(amount) AS total FROM Expense GROUP BY category ORDER BY total DESC",
+    "visualization": "{\\"type\\":\\"bar\\",\\"title\\":\\"Expenses by Category\\",\\"xKey\\":\\"category\\",\\"yKey\\":\\"total\\"}"
   },
-  "reasoning": "User wants expenses grouped by category"
+  "reasoning": "User wants expenses broken down by category"
+}
+
+Example dynamicSqlQuery for Payment success rate (joining tables):
+{
+  "tool": "dynamicSqlQuery",
+  "params": {
+    "sql": "SELECT p.status, COUNT(p.id) AS count, SUM(p.amount) AS total FROM Payment p JOIN Invoice i ON p.invoiceId = i.id GROUP BY p.status",
+    "visualization": "{\\"type\\":\\"pie\\",\\"title\\":\\"Payment Status Distribution\\",\\"xKey\\":\\"status\\",\\"yKey\\":\\"count\\"}"
+  },
+  "reasoning": "User wants payment status distribution"
 }`;
 
-    const userMessage = `User query: "${query}"\nDomain: ${domain}`;
+    const userMessage = `User query: "${query}"\nDomain: ${domain}\nConversation context: ${sessionContext}`;
 
     try {
       const completion = await groq.chat.completions.create({

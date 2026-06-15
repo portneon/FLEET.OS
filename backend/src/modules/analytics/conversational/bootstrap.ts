@@ -9,7 +9,7 @@ import { timeSeriesMetricTool } from './tools/implementations/timeSeriesMetric';
 import { rankEntitiesTool }    from './tools/implementations/rankEntities';
 import { computeKPITool }      from './tools/implementations/computeKPI';
 import { statusDistributionTool } from './tools/implementations/statusDistribution';
-import { dynamicPrismaQueryTool } from './tools/implementations/dynamicPrismaQuery';
+import { dynamicSqlQueryTool } from './tools/implementations/dynamicSqlQuery';
 
 export function bootstrapTools(): void {
   ToolRegistry.register(aggregateMetricTool);
@@ -18,6 +18,6 @@ export function bootstrapTools(): void {
   ToolRegistry.register(rankEntitiesTool);
   ToolRegistry.register(computeKPITool);
   ToolRegistry.register(statusDistributionTool);
-  ToolRegistry.register(dynamicPrismaQueryTool);
+  ToolRegistry.register(dynamicSqlQueryTool);
   console.log('[AIAnalytics] Tools registered:', ToolRegistry.getAll().map(t => t.name).join(', '));
 }
