@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { IFinanceService } from '../interfaces/IFinanceService';
 
 export class FinanceController {
-    constructor(private financeService: IFinanceService) {}
+    constructor(private financeService: IFinanceService) { }
 
 
 
@@ -167,7 +167,7 @@ export class FinanceController {
                 dueDate: new Date(dueDate)
             });
             // Audit trail
-            await this.financeService.addTransaction({ organizationId: orgId, amount: calc, type: 'INCOME', category: 'INVOICE', description: `[CREATE] Invoice ${invoice.id.slice(0,8)} created for customer ${customerId.slice(0,8)}` }).catch(() => {});
+            await this.financeService.addTransaction({ organizationId: orgId, amount: calc, type: 'INCOME', category: 'INVOICE', description: `[CREATE] Invoice ${invoice.id.slice(0, 8)} created for customer ${customerId.slice(0, 8)}` }).catch(() => { });
             res.status(201).json({ data: invoice, message: 'Invoice created successfully' });
         } catch (error: any) {
             res.status(400).json({ error: error.message });
@@ -218,7 +218,7 @@ export class FinanceController {
 
             const invoice = await this.financeService.updateInvoice(req.params.id, data);
             // Audit trail
-            if (orgId) await this.financeService.addTransaction({ organizationId: orgId, amount: invoice.total, type: 'INCOME', category: 'INVOICE', description: `[EDIT] Invoice ${invoice.id.slice(0,8)} updated — status: ${invoice.status}` }).catch(() => {});
+            if (orgId) await this.financeService.addTransaction({ organizationId: orgId, amount: invoice.total, type: 'INCOME', category: 'INVOICE', description: `[EDIT] Invoice ${invoice.id.slice(0, 8)} updated — status: ${invoice.status}` }).catch(() => { });
             res.status(200).json({ data: invoice, message: 'Invoice updated successfully' });
         } catch (error: any) {
             res.status(400).json({ error: error.message });
@@ -248,7 +248,7 @@ export class FinanceController {
                 invoiceId, amount: parseFloat(amount), method, status
             });
             // Audit trail
-            if (orgId) await this.financeService.addTransaction({ organizationId: orgId, amount: parseFloat(amount), type: 'INCOME', category: 'PAYMENT', description: `[CREATE] Payment ₹${amount} received via ${method} for invoice ${invoiceId.slice(0,8)}` }).catch(() => {});
+            if (orgId) await this.financeService.addTransaction({ organizationId: orgId, amount: parseFloat(amount), type: 'INCOME', category: 'PAYMENT', description: `[CREATE] Payment ₹${amount} received via ${method} for invoice ${invoiceId.slice(0, 8)}` }).catch(() => { });
             res.status(201).json({ data: payment, message: 'Payment recorded successfully' });
         } catch (error: any) {
             res.status(400).json({ error: error.message });
@@ -286,7 +286,7 @@ export class FinanceController {
                 expenseDate: expenseDate ? new Date(expenseDate) : undefined
             });
             // Audit trail
-            await this.financeService.addTransaction({ organizationId: orgId, amount: parseFloat(amount), type: 'EXPENSE', category, description: `[CREATE] Expense — ${vendor || category}${notes ? ': ' + notes : ''}` }).catch(() => {});
+            await this.financeService.addTransaction({ organizationId: orgId, amount: parseFloat(amount), type: 'EXPENSE', category, description: `[CREATE] Expense — ${vendor || category}${notes ? ': ' + notes : ''}` }).catch(() => { });
             res.status(201).json({ data: expense, message: 'Expense created successfully' });
         } catch (error: any) {
             res.status(400).json({ error: error.message });
@@ -330,7 +330,7 @@ export class FinanceController {
 
             const expense = await this.financeService.updateExpense(req.params.id, data);
             // Audit trail
-            if (orgId) await this.financeService.addTransaction({ organizationId: orgId, amount: expense.amount, type: 'EXPENSE', category: expense.category, description: `[EDIT] Expense ${expense.id.slice(0,8)} updated — ${expense.vendor || expense.category}` }).catch(() => {});
+            if (orgId) await this.financeService.addTransaction({ organizationId: orgId, amount: expense.amount, type: 'EXPENSE', category: expense.category, description: `[EDIT] Expense ${expense.id.slice(0, 8)} updated — ${expense.vendor || expense.category}` }).catch(() => { });
             res.status(200).json({ data: expense, message: 'Expense updated successfully' });
         } catch (error: any) {
             res.status(400).json({ error: error.message });
@@ -461,7 +461,7 @@ export class FinanceController {
                 netPay: net
             });
             // Audit trail
-            if (orgId) await this.financeService.addTransaction({ organizationId: orgId, amount: net, type: 'EXPENSE', category: 'SALARY', description: `[CREATE] Payroll — driver ${driverId.slice(0,8)}, net ₹${net}` }).catch(() => {});
+            if (orgId) await this.financeService.addTransaction({ organizationId: orgId, amount: net, type: 'EXPENSE', category: 'SALARY', description: `[CREATE] Payroll — driver ${driverId.slice(0, 8)}, net ₹${net}` }).catch(() => { });
             res.status(201).json({ data: payroll, message: 'Payroll record created successfully' });
         } catch (error: any) {
             res.status(400).json({ error: error.message });
