@@ -1,59 +1,29 @@
-import express from 'express';
 import cors from 'cors';
-import { Routes } from './shared/interfaces/routes.interface';
+import express, { Application, Router } from 'express';
+import { Server } from 'node:http';
+
+export interface AppRoute {
+    readonly path: string;
+    readonly router: Router;
+}
 
 export class App {
-    public app: express.Application;
-    public port: string | number;
+    readonly server: Application;
 
-    constructor(routes: Routes[]) {
-        this.app = express();
-        this.port = process.env.PORT || 3000;
+    constructor(routes: readonly AppRoute[] = []) {
+        this.server = express();
+        this.server.use(cors({ origin: process.env.FRONTEND_URL || 'http://localhost:3000' }));
+        this.server.use(express.json({ limit: '1mb' }));
+        this.server.get('/health', (_request, response) => response.json({ status: 'ok' }));
 
-        this.initializeMiddlewares();
-        this.initializeRoutes(routes);
+        for (const route of routes) {
+            this.server.use(`/api${route.path}`, route.router);
+        }
     }
 
-    public listen() {
-        this.app.listen(this.port, () => {
-            console.log(`Server is running at http://localhost:${this.port}`);
-        });
-    }
-
-    private initializeMiddlewares() {
-        const allowedOrigins = [
-            process.env.FRONTEND_URL || 'http://localhost:3000',
-            'http://localhost:3001',
-            'http://localhost:3002',
-        ];
-
-        this.app.use(cors({
-            origin: (origin, callback) => {
-                // Allow requests with no origin (server-to-server, curl, etc.)
-                if (!origin || allowedOrigins.includes(origin)) {
-                    callback(null, true);
-                } else {
-                    callback(null, true); 
-                }
-            },
-            credentials: true,
-            allowedHeaders: ['Content-Type', 'Authorization', 'x-organization-id', 'x-admin-email'],
-            methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-        }));
-        this.app.use(express.json());
-    }
-
-    private initializeRoutes(routes: Routes[]) {
-        this.app.get('/', (req, res) => {
-            res.json({ message: 'Welcome to the FleetOS API with OOP Architecture' });
-        });
-
-        routes.forEach(route => {
-            if (route.path) {
-                this.app.use(`/api${route.path}`, route.router);
-            } else {
-                this.app.use('/api', route.router);
-            }
+    listen(port = Number(process.env.PORT || 3001)): Server {
+        return this.server.listen(port, () => {
+            console.log(`FleetOS API listening on port ${port}`);
         });
     }
 }
